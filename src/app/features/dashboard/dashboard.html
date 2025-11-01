@@ -1,0 +1,280 @@
+<!-- Modern Dashboard Page -->
+<div class="min-h-screen bg-[#F2F2F2]">
+  <!-- Navigation Header --
+  <header class="bg-white/80 backdrop-blur-sm border-b border-[#E9ECEF] sticky top-0 z-50">
+    <div class="container mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo --
+        <div class="flex items-center space-x-3">
+          <span class="material-symbols-outlined text-[#0367A6] text-2xl font-variation-settings-wght-400">sports_score</span>
+          <span class="text-xl font-bold text-[#202020]">Sport Center</span>
+        </div>
+
+        <!-- Desktop Navigation --
+        <nav class="hidden md:flex items-center space-x-8">
+          <a routerLink="/home" class="text-[#666666] hover:text-[#0367A6] font-medium transition-colors">Inicio</a>
+          <a routerLink="/catalog" class="text-[#666666] hover:text-[#0367A6] font-medium transition-colors">Catálogo</a>
+          <a routerLink="/offers" class="text-[#666666] hover:text-[#0367A6] font-medium transition-colors">Ofertas</a>
+          <a routerLink="/cart" class="text-[#666666] hover:text-[#0367A6] font-medium transition-colors">Carrito</a>
+        </nav>
+
+        <!-- User Actions --
+        <div class="flex items-center space-x-4">
+          <!-- Notifications --
+          <button (click)="toggleNotifications()" class="relative p-2 text-[#666666] hover:text-[#0367A6] transition-colors">
+            <span class="material-symbols-outlined text-xl font-variation-settings-wght-400">notifications</span>
+            <span *ngIf="unreadNotifications > 0" class="absolute -top-1 -right-1 bg-[#FF7A00] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">{{ unreadNotifications }}</span>
+          </button>
+
+          <!-- User Menu --
+          <div class="relative">
+            <button (click)="toggleUserMenu()" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-[#F8F9FA] transition-colors">
+              <div class="w-8 h-8 bg-[#0367A6] rounded-full flex items-center justify-center">
+                <span class="text-white text-sm font-semibold">U</span>
+              </div>
+              <span class="hidden sm:block text-[#202020] font-medium">Usuario</span>
+              <span class="material-symbols-outlined text-[#666666] text-lg font-variation-settings-wght-400">expand_more</span>
+            </button>
+            
+            <!-- User Dropdown --
+            <div *ngIf="showUserMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-[#E9ECEF] py-2 z-50">
+              <a routerLink="/dashboard" class="flex items-center gap-3 px-4 py-2 text-[#0367A6] bg-[#F8F9FA] font-semibold">
+                <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">dashboard</span>
+                Dashboard
+              </a>
+              <a routerLink="/profile" class="flex items-center gap-3 px-4 py-2 text-[#666666] hover:text-[#0367A6] hover:bg-[#F8F9FA] transition-colors">
+                <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">person</span>
+                Mi Perfil
+              </a>
+              <a routerLink="/orders" class="flex items-center gap-3 px-4 py-2 text-[#666666] hover:text-[#0367A6] hover:bg-[#F8F9FA] transition-colors">
+                <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">receipt</span>
+                Mis Pedidos
+              </a>
+              <div class="border-t border-[#E9ECEF] my-2"></div>
+              <button (click)="logout()" class="flex items-center gap-3 px-4 py-2 text-[#D93025] hover:bg-[#F8F9FA] transition-colors w-full text-left">
+                <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">logout</span>
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notifications Panel -->
+  <div *ngIf="showNotifications" class="fixed right-4 top-20 w-80 bg-white rounded-xl shadow-lg border border-[#E9ECEF] z-50 max-h-96 overflow-y-auto">
+    <div class="p-4 border-b border-[#E9ECEF]">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-[#202020]">Notificaciones</h3>
+        <button (click)="markAllAsRead()" class="text-sm text-[#0367A6] hover:text-[#035A91]">Marcar todas como leídas</button>
+      </div>
+    </div>
+    <div class="divide-y divide-[#E9ECEF]">
+      <div *ngFor="let notification of notifications" 
+           class="p-4 hover:bg-[#F8F9FA] transition-colors cursor-pointer"
+           [class.bg-[#F0F9FF]]="!notification.read">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-[#0367A6] font-variation-settings-wght-400" [innerHTML]="notification.icon"></span>
+          <div class="flex-1">
+            <p class="text-sm text-[#202020] font-medium">{{ notification.title }}</p>
+            <p class="text-xs text-[#666666] mt-1">{{ notification.message }}</p>
+            <span class="text-xs text-[#A6A6A6] mt-2 block">{{ notification.time }}</span>
+          </div>
+          <div *ngIf="!notification.read" class="w-2 h-2 bg-[#FF7A00] rounded-full"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="container mx-auto px-4 sm:px-6 py-8">
+    <!-- Welcome Section -->
+    <div class="mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-[#202020] mb-2">Bienvenido de vuelta, Usuario</h1>
+      <p class="text-[#666666]">Aquí tienes un resumen de tu actividad en Sport Center</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Total Orders -->
+      <div class="bg-white rounded-2xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[#666666] text-sm">Total Pedidos</p>
+            <h3 class="text-2xl font-bold text-[#202020]">{{ stats.totalOrders }}</h3>
+          </div>
+          <div class="w-12 h-12 bg-[#E5F2FA] rounded-xl flex items-center justify-center">
+            <span class="material-symbols-outlined text-[#0367A6] text-xl font-variation-settings-wght-400">shopping_bag</span>
+          </div>
+        </div>
+        <p class="text-[#22C55E] text-sm mt-2 flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm font-variation-settings-wght-400">trending_up</span>
+          +12% este mes
+        </p>
+      </div>
+
+      <!-- Pending Orders -->
+      <div class="bg-white rounded-2xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[#666666] text-sm">Pendientes</p>
+            <h3 class="text-2xl font-bold text-[#202020]">{{ stats.pendingOrders }}</h3>
+          </div>
+          <div class="w-12 h-12 bg-[#FEF3E2] rounded-xl flex items-center justify-center">
+            <span class="material-symbols-outlined text-[#F59E0B] text-xl font-variation-settings-wght-400">pending</span>
+          </div>
+        </div>
+        <p class="text-[#666666] text-sm mt-2">En proceso de envío</p>
+      </div>
+
+      <!-- Total Spent -->
+      <div class="bg-white rounded-2xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[#666666] text-sm">Total Gastado</p>
+            <h3 class="text-2xl font-bold text-[#202020]">{{ stats.totalSpent | currency }}</h3>
+          </div>
+          <div class="w-12 h-12 bg-[#F0FDF4] rounded-xl flex items-center justify-center">
+            <span class="material-symbols-outlined text-[#22C55E] text-xl font-variation-settings-wght-400">payments</span>
+          </div>
+        </div>
+        <p class="text-[#666666] text-sm mt-2">En {{ stats.totalOrders }} pedidos</p>
+      </div>
+
+      <!-- Loyalty Points -->
+      <div class="bg-white rounded-2xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[#666666] text-sm">Puntos de Fidelidad</p>
+            <h3 class="text-2xl font-bold text-[#202020]">{{ stats.loyaltyPoints }}</h3>
+          </div>
+          <div class="w-12 h-12 bg-[#FEF7FF] rounded-xl flex items-center justify-center">
+            <span class="material-symbols-outlined text-[#A855F7] text-xl font-variation-settings-wght-400">loyalty</span>
+          </div>
+        </div>
+        <p class="text-[#666666] text-sm mt-2">Canjea tus puntos</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Recent Orders -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-[#202020]">Pedidos Recientes</h2>
+            <a routerLink="/orders" class="text-[#0367A6] hover:text-[#035A91] font-semibold text-sm flex items-center gap-1">
+              Ver todos
+              <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">arrow_forward</span>
+            </a>
+          </div>
+
+          <div class="space-y-4">
+            <div *ngFor="let order of recentOrders" 
+                 class="flex items-center justify-between p-4 bg-[#F8F9FA] rounded-xl hover:bg-[#E9ECEF] transition-colors cursor-pointer"
+                 (click)="viewOrder(order.id)">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[#0367A6] font-variation-settings-wght-400">inventory_2</span>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-[#202020]">Pedido #{{ order.id }}</h4>
+                  <p class="text-sm text-[#666666]">{{ order.date }}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="font-semibold text-[#202020]">{{ order.total | currency }}</span>
+                <div [ngClass]="{
+                  'bg-[#F0FDF4] text-[#22C55E]': order.status === 'completed',
+                  'bg-[#FEF3E2] text-[#F59E0B]': order.status === 'processing',
+                  'bg-[#E5F2FA] text-[#0367A6]': order.status === 'shipped'
+                }" class="px-2 py-1 rounded-full text-xs font-medium mt-1">
+                  {{ getStatusText(order.status) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-2 gap-4 mt-6">
+          <button (click)="startReturn()" class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 text-left group">
+            <div class="w-12 h-12 bg-[#FEF3E2] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[#F59E0B] text-xl font-variation-settings-wght-400">assignment_return</span>
+            </div>
+            <h3 class="font-semibold text-[#202020] mb-2">Devoluciones</h3>
+            <p class="text-[#666666] text-sm">Solicitar devolución o cambio</p>
+          </button>
+
+          <button (click)="contactSupport()" class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 text-left group">
+            <div class="w-12 h-12 bg-[#E5F2FA] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[#0367A6] text-xl font-variation-settings-wght-400">support_agent</span>
+            </div>
+            <h3 class="font-semibold text-[#202020] mb-2">Soporte</h3>
+            <p class="text-[#666666] text-sm">¿Necesitas ayuda?</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="space-y-6">
+        <!-- Profile Summary -->
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+          <div class="text-center">
+            <div class="w-16 h-16 bg-[#0367A6] rounded-full flex items-center justify-center mx-auto mb-4">
+              <span class="text-white text-xl font-semibold">U</span>
+            </div>
+            <h3 class="font-semibold text-[#202020]">Usuario Demo</h3>
+            <p class="text-[#666666] text-sm mb-4">usuario@demo.com</p>
+            <button (click)="editProfile()" class="w-full bg-[#0367A6] hover:bg-[#035A91] text-white py-2 rounded-xl font-semibold transition-all duration-200">
+              Editar Perfil
+            </button>
+          </div>
+        </div>
+
+        <!-- Wishlist -->
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-[#202020]">Lista de Deseos</h3>
+            <span class="text-[#0367A6] font-semibold">{{ wishlistItems.length }} items</span>
+          </div>
+          <div class="space-y-3">
+            <div *ngFor="let item of wishlistItems" class="flex items-center gap-3 p-3 bg-[#F8F9FA] rounded-xl">
+              <img [src]="item.image" [alt]="item.name" class="w-12 h-12 object-cover rounded-lg">
+              <div class="flex-1">
+                <h4 class="text-sm font-medium text-[#202020]">{{ item.name }}</h4>
+                <span class="text-sm font-bold text-[#202020]">{{ item.price | currency }}</span>
+              </div>
+              <button (click)="moveToCart(item)" class="p-1 text-[#666666] hover:text-[#0367A6] transition-colors">
+                <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">shopping_cart</span>
+              </button>
+            </div>
+          </div>
+          <button routerLink="/wishlist" class="w-full mt-4 text-[#0367A6] hover:text-[#035A91] font-semibold text-sm flex items-center justify-center gap-1">
+            Ver lista completa
+            <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">arrow_forward</span>
+          </button>
+        </div>
+
+        <!-- Loyalty Program -->
+        <div class="bg-linear-to-br from-[#0367A6] to-[#035A91] rounded-2xl p-6 text-white">
+          <div class="text-center">
+            <span class="material-symbols-outlined text-3xl font-variation-settings-wght-400 mb-3">loyalty</span>
+            <h3 class="font-semibold text-lg mb-2">Programa de Fidelidad</h3>
+            <p class="text-white/80 text-sm mb-4">Gana puntos con cada compra y canjéalos por descuentos</p>
+            <div class="bg-white/20 backdrop-blur-sm rounded-xl p-3">
+              <div class="flex justify-between text-sm mb-2">
+                <span>Puntos actuales</span>
+                <span class="font-semibold">{{ stats.loyaltyPoints }} pts</span>
+              </div>
+              <div class="w-full bg-white/30 rounded-full h-2">
+                <div class="bg-[#FF7A00] h-2 rounded-full" [style.width]="(stats.loyaltyPoints / 1000) * 100 + '%'"></div>
+              </div>
+              <p class="text-xs mt-2">{{ 1000 - stats.loyaltyPoints }} pts para el siguiente nivel</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,185 @@
+<!-- Modern Offers Page -->
+<div class="min-h-screen bg-[#F2F2F2]">
+  <!-- Navigation Header (same as home)
+  <header class="bg-white/80 backdrop-blur-sm border-b border-[#E9ECEF] sticky top-0 z-50">
+    <div class="container mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo 
+        <div class="flex items-center space-x-3">
+          <span class="material-symbols-outlined text-[#0367A6] text-2xl font-variation-settings-wght-400">sports_score</span>
+          <span class="text-xl font-bold text-[#202020]">Sport Center</span>
+        </div>
+
+        <!-- Desktop Navigation
+        <nav class="hidden md:flex items-center space-x-8">
+          <a routerLink="/home" class="text-[#666666] hover:text-[#0367A6] font-medium transition-colors">Inicio</a>
+          <a routerLink="/catalog" class="text-[#666666] hover:text-[#0367A6] font-medium transition-colors">Catálogo</a>
+          <a routerLink="/offers" class="text-[#0367A6] font-semibold border-b-2 border-[#0367A6] py-2">Ofertas</a>
+          <a routerLink="/cart" class="text-[#666666] hover:text-[#0367A6] font-medium transition-colors">Carrito</a>
+        </nav>
+
+        <!-- User Actions 
+        <div class="flex items-center space-x-4">
+          <!-- Search --
+          <button class="p-2 text-[#666666] hover:text-[#0367A6] transition-colors">
+            <span class="material-symbols-outlined text-xl font-variation-settings-wght-400">search</span>
+          </button>
+
+          <!-- Cart --
+          <button routerLink="/cart" class="relative p-2 text-[#666666] hover:text-[#0367A6] transition-colors">
+            <span class="material-symbols-outlined text-xl font-variation-settings-wght-400">shopping_cart</span>
+            <span class="absolute -top-1 -right-1 bg-[#FF7A00] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">3</span>
+          </button>
+
+          <!-- User Menu --
+          <div class="relative">
+            <button class="flex items-center space-x-2 p-2 rounded-lg hover:bg-[#F8F9FA] transition-colors">
+              <div class="w-8 h-8 bg-[#0367A6] rounded-full flex items-center justify-center">
+                <span class="text-white text-sm font-semibold">U</span>
+              </div>
+              <span class="hidden sm:block text-[#202020] font-medium">Usuario</span>
+              <span class="material-symbols-outlined text-[#666666] text-lg font-variation-settings-wght-400">expand_more</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header> -->
+
+  <!-- Offers Hero -->
+  <section class="relative bg-linear-to-r from-[#0367A6] to-[#E56E00] text-[#202020] overflow-hidden">
+    <div class="absolute inset-0 bg-black/10"></div>
+    <div class="relative container mx-auto px-4 sm:px-6 py-16">
+      <div class="max-w-3xl text-center mx-auto">
+        <h1 class="text-4xl sm:text-6xl font-bold leading-tight mb-6">
+          Ofertas Especiales
+        </h1>
+        <p class="text-xl text-[#202020]/90 mb-8 leading-relaxed">
+          Aprovecha nuestros descuentos exclusivos en productos deportivos de calidad. Tiempo limitado.
+        </p>
+        <div class="flex items-center justify-center gap-4 text-sm">
+          <div class="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
+            <span class="font-bold text-2xl">02</span>
+            <span class="block">Días</span>
+          </div>
+          <div class="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
+            <span class="font-bold text-2xl">14</span>
+            <span class="block">Horas</span>
+          </div>
+          <div class="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
+            <span class="font-bold text-2xl">45</span>
+            <span class="block">Minutos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Offers -->
+  <section class="py-16 bg-white">
+    <div class="container mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl sm:text-4xl font-bold text-[#202020] mb-4">Ofertas Destacadas</h2>
+        <p class="text-[#666666] text-lg max-w-2xl mx-auto">Los productos más populares con descuentos exclusivos</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <!-- Big Offer 1 -->
+        <div class="relative bg-[#F8F9FA] rounded-2xl overflow-hidden group">
+          <div class="flex flex-col lg:flex-row">
+            <div class="lg:w-1/2 relative">
+              <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&q=80" 
+                   alt="Zapatillas Running" class="w-full h-64 lg:h-full object-cover group-hover:scale-105 transition-transform duration-300">
+              <div class="absolute top-4 left-4">
+                <span class="bg-[#FF7A00] text-[#202020] text-sm font-bold px-3 py-1 rounded-full">50% OFF</span>
+              </div>
+            </div>
+            <div class="lg:w-1/2 p-8 flex flex-col justify-center">
+              <h3 class="text-2xl font-bold text-[#202020] mb-4">Zapatillas Running Elite</h3>
+              <p class="text-[#666666] mb-6">Tecnología de amortiguación avanzada para corredores profesionales.</p>
+              <div class="flex items-center gap-4 mb-6">
+                <span class="text-3xl font-bold text-[#202020]">$79.99</span>
+                <span class="text-xl text-[#666666] line-through">$159.99</span>
+              </div>
+              <button class="bg-[#0367A6] hover:bg-[#035A91] text-white py-3 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 w-full lg:w-auto">
+                <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">shopping_cart</span>
+                Agregar al Carrito
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Big Offer 2 -->
+        <div class="relative bg-[#F8F9FA] rounded-2xl overflow-hidden group">
+          <div class="flex flex-col lg:flex-row">
+            <div class="lg:w-1/2 relative">
+              <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&q=80" 
+                   alt="Ropa Deportiva" class="w-full h-64 lg:h-full object-cover group-hover:scale-105 transition-transform duration-300">
+              <div class="absolute top-4 left-4">
+                <span class="bg-[#FF7A00] text-[#202020] text-sm font-bold px-3 py-1 rounded-full">30% OFF</span>
+              </div>
+            </div>
+            <div class="lg:w-1/2 p-8 flex flex-col justify-center">
+              <h3 class="text-2xl font-bold text-[#202020] mb-4">Kit Deportivo Completo</h3>
+              <p class="text-[#666666] mb-6">Camiseta, pantalón y chaqueta técnica para entrenamiento.</p>
+              <div class="flex items-center gap-4 mb-6">
+                <span class="text-3xl font-bold text-[#202020]">$89.99</span>
+                <span class="text-xl text-[#666666] line-through">$128.99</span>
+              </div>
+              <button class="bg-[#0367A6] hover:bg-[#035A91] text-white py-3 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 w-full lg:w-auto">
+                <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">shopping_cart</span>
+                Agregar al Carrito
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- All Offers Grid -->
+  <section class="py-16 bg-[#F2F2F2]">
+    <div class="container mx-auto px-4 sm:px-6">
+      <h2 class="text-3xl font-bold text-[#202020] mb-8">Todas las Ofertas</h2>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Offer Product 1 -->
+        <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group">
+          <div class="relative overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&q=80" 
+                 alt="Balón Fútbol" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+            <div class="absolute top-3 left-3">
+              <span class="bg-[#FF7A00] text-[#202020] text-xs font-bold px-2 py-1 rounded-full">25% OFF</span>
+            </div>
+            <button class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full text-[#666666] hover:text-[#0367A6] transition-colors">
+              <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">favorite</span>
+            </button>
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold text-[#202020] mb-2">Balón Fútbol Pro</h3>
+            <p class="text-[#666666] text-sm mb-3">Balón oficial tamaño 5</p>
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xl font-bold text-[#202020]">$29.99</span>
+                <span class="text-sm text-[#666666] line-through">$39.99</span>
+              </div>
+              <div class="flex text-[#FF7A00]">
+                <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star</span>
+                <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star</span>
+                <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star</span>
+                <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star</span>
+                <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star_half</span>
+              </div>
+            </div>
+            <button class="w-full bg-[#0367A6] hover:bg-[#035A91] text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">shopping_cart</span>
+              Agregar al Carrito
+            </button>
+          </div>
+        </div>
+
+        <!-- Add more offer products as needed -->
+      </div>
+    </div>
+  </section>
+</div>

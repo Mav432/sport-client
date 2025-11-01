@@ -1,1 +1,79 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import "tailwindcss";
+@import 'ngx-toastr/toastr';
+
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Configuración para Material Symbols Outlined */
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}
+
+/* ===== MODERN TOAST STYLES ===== */
+.toast-container .ngx-toastr {
+  border-radius: 12px !important;
+  padding: 16px 20px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  border: none !important;
+  font-family: 'Inter', sans-serif !important;
+  min-height: 60px !important;
+}
+
+/* Success - Verde moderno */
+.toast-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
+}
+
+/* Error - Rojo moderno */
+.toast-error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: white !important;
+}
+
+/* Info - Azul moderno */
+.toast-info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
+}
+
+/* Warning - Naranja moderno */
+.toast-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: white !important;
+}
+
+/* Título */
+.toast-title {
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  margin-bottom: 4px !important;
+}
+
+/* Mensaje */
+.toast-message {
+  font-size: 14px !important;
+  opacity: 0.95 !important;
+  line-height: 1.4 !important;
+}
+
+/* Barra de progreso */
+.toast-progress {
+  height: 3px !important;
+  border-radius: 0 0 12px 12px !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Hover effect */
+.toast-container .ngx-toastr:hover {
+  transform: translateY(-2px) !important;
+  transition: all 0.2s ease !important;
+}

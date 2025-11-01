@@ -1,0 +1,59 @@
+## Netlify Configuration File
+## Configuración para despliegue del frontend en Netlify
+
+[build]
+  # Comando de compilación
+  command = "npm run build:prod"
+  
+  # Directorio donde están los archivos compilados
+  publish = "dist/ecommerce-app/browser"
+  
+  # Node version (importante para consistencia)
+  NODE_VERSION = "18"
+
+## Redirects y Rewrites para SPA (Single Page Application)
+## Esto es CRÍTICO para que Angular routing funcione correctamente
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+## Headers de seguridad y cache
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Seguridad
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Cache para assets
+    Cache-Control = "public, max-age=3600"
+
+## Cache agresivo para archivos estáticos con hash
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+## NO cachear index.html para evitar problemas con actualizaciones
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+## Environment variables (opcional, mejor configurar en Netlify UI)
+# [build.environment]
+#   NODE_ENV = "production"

@@ -1,0 +1,201 @@
+<!-- Modern Catalog Page -->
+<div class="min-h-screen bg-[#F2F2F2]">
+
+  <!-- Catalog Header -->
+  <section class="bg-[#0367A6] to-[#035A91] py-12">
+    <div class="container mx-auto px-4 sm:px-6">
+      <div class="flex flex-col lg:flex-row lg:items-center  lg:justify-between">
+        <div >
+          <h1 class="text-4xl sm:text-5xl font-bold text-[#202020] mb-4">Catálogo de Productos</h1>
+          <p class="text-white text-lg">Encuentra todo lo que necesitas para tu actividad deportiva</p>
+        </div>
+        <div class="mt-6 lg:mt-0 flex items-center gap-4">
+          <!-- Sort -->
+          <select class="bg-[#F8F9FA] border-2 border-transparent rounded-xl px-4 py-3 text-[#202020] focus:border-[#0367A6] focus:ring-4 focus:ring-[#0367A6]/10 outline-none transition-all duration-200">
+            <option>Ordenar por: Popularidad</option>
+            <option>Ordenar por: Precio Menor</option>
+            <option>Ordenar por: Precio Mayor</option>
+            <option>Ordenar por: Nuevos</option>
+          </select>
+
+          <!-- View Toggle -->
+          <div class="flex bg-[#F8F9FA] rounded-xl p-1">
+            <button class="p-2 rounded-lg bg-white shadow-sm text-[#0367A6]">
+              <span class="material-symbols-outlined font-variation-settings-wght-400">grid_view</span>
+            </button>
+            <button class="p-2 rounded-lg text-[#666666] hover:text-[#0367A6]">
+              <span class="material-symbols-outlined font-variation-settings-wght-400">view_list</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Catalog Content -->
+  <section class="py-8">
+    <div class="container mx-auto px-4 sm:px-6">
+      <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Sidebar Filters -->
+        <div class="lg:w-1/4">
+          <div class="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
+            <h3 class="text-xl font-bold text-[#202020] mb-6">Filtros</h3>
+
+            <!-- Categories -->
+            <div class="mb-6">
+              <h4 class="font-semibold text-[#202020] mb-4">Categorías</h4>
+              <div class="space-y-2">
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" class="rounded text-[#0367A6] focus:ring-[#0367A6]">
+                  <span class="text-[#666666]">Running</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" class="rounded text-[#0367A6] focus:ring-[#0367A6]">
+                  <span class="text-[#666666]">Fútbol</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" class="rounded text-[#0367A6] focus:ring-[#0367A6]">
+                  <span class="text-[#666666]">Basketball</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" class="rounded text-[#0367A6] focus:ring-[#0367A6]">
+                  <span class="text-[#666666]">Fitness</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" class="rounded text-[#0367A6] focus:ring-[#0367A6]">
+                  <span class="text-[#666666]">Yoga</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Price Range -->
+            <div class="mb-6">
+              <h4 class="font-semibold text-[#202020] mb-4">Rango de Precio</h4>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-[#666666]">$0</span>
+                  <span class="text-sm text-[#666666]">$200</span>
+                </div>
+                <input type="range" min="0" max="200" value="100" class="w-full h-2 bg-[#E9ECEF] rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#0367A6]">
+              </div>
+            </div>
+
+            <!-- Brands -->
+            <div class="mb-6">
+              <h4 class="font-semibold text-[#202020] mb-4">Marcas</h4>
+              <div class="space-y-2">
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" class="rounded text-[#0367A6] focus:ring-[#0367A6]">
+                  <span class="text-[#666666]">Nike</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" class="rounded text-[#0367A6] focus:ring-[#0367A6]">
+                  <span class="text-[#666666]">Adidas</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" class="rounded text-[#0367A6] focus:ring-[#0367A6]">
+                  <span class="text-[#666666]">Puma</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" class="rounded text-[#0367A6] focus:ring-[#0367A6]">
+                  <span class="text-[#666666]">Under Armour</span>
+                </label>
+              </div>
+            </div>
+
+            <button class="w-full bg-[#0367A6] hover:bg-[#035A91] text-white py-3 rounded-xl font-semibold transition-all duration-200">
+              Aplicar Filtros
+            </button>
+          </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="lg:w-3/4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            <!-- Product Card 1 -->
+            <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group">
+              <div class="relative overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&q=80" 
+                     alt="Zapatillas Running Pro" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                <div class="absolute top-3 left-3">
+                  <span class="bg-[#FF7A00] text-[#202020] text-xs font-bold px-2 py-1 rounded-full">NUEVO</span>
+                </div>
+                <button class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full text-[#666666] hover:text-[#0367A6] transition-colors">
+                  <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">favorite</span>
+                </button>
+              </div>
+              <div class="p-4">
+                <h3 class="font-semibold text-[#202020] mb-2">Zapatillas Running Pro</h3>
+                <p class="text-[#666666] text-sm mb-3">Tecnología avanzada para máximo rendimiento</p>
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-2xl font-bold text-[#202020]">$89.99</span>
+                  <div class="flex text-[#FF7A00]">
+                    <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star</span>
+                    <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star</span>
+                    <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star</span>
+                    <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star</span>
+                    <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star_half</span>
+                  </div>
+                </div>
+                <button class="w-full bg-[#0367A6] hover:bg-[#035A91] text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+                  <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">shopping_cart</span>
+                  Agregar al Carrito
+                </button>
+              </div>
+            </div>
+
+            <!-- Product Card 2 -->
+            <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group">
+              <div class="relative overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&q=80" 
+                     alt="Camiseta Deportiva Tech" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                <div class="absolute top-3 left-3">
+                  <span class="bg-[#FF7A00] text-[#202020] text-xs font-bold px-2 py-1 rounded-full">OFERTA</span>
+                </div>
+                <button class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full text-[#666666] hover:text-[#0367A6] transition-colors">
+                  <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">favorite</span>
+                </button>
+              </div>
+              <div class="p-4">
+                <h3 class="font-semibold text-[#202020] mb-2">Camiseta Deportiva Tech</h3>
+                <p class="text-[#666666] text-sm mb-3">Material transpirable para máximo confort</p>
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-2xl font-bold text-[#202020]">$34.99</span>
+                    <span class="text-sm text-[#666666] line-through">$49.99</span>
+                  </div>
+                  <div class="flex text-[#FF7A00]">
+                    <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star</span>
+                    <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star</span>
+                    <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star</span>
+                    <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star</span>
+                    <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">star</span>
+                  </div>
+                </div>
+                <button class="w-full bg-[#0367A6] hover:bg-[#035A91] text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+                  <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">shopping_cart</span>
+                  Agregar al Carrito
+                </button>
+              </div>
+            </div>
+
+            <!-- Add more product cards as needed -->
+          </div>
+
+          <!-- Pagination -->
+          <div class="flex justify-center items-center space-x-2 mt-12">
+            <button class="w-10 h-10 flex items-center justify-center rounded-lg bg-[#F8F9FA] text-[#666666] hover:bg-[#0367A6] hover:text-white transition-colors">
+              <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">chevron_left</span>
+            </button>
+            <button class="w-10 h-10 flex items-center justify-center rounded-lg bg-[#0367A6] text-white font-semibold">1</button>
+            <button class="w-10 h-10 flex items-center justify-center rounded-lg bg-[#F8F9FA] text-[#666666] hover:bg-[#0367A6] hover:text-white transition-colors">2</button>
+            <button class="w-10 h-10 flex items-center justify-center rounded-lg bg-[#F8F9FA] text-[#666666] hover:bg-[#0367A6] hover:text-white transition-colors">3</button>
+            <button class="w-10 h-10 flex items-center justify-center rounded-lg bg-[#F8F9FA] text-[#666666] hover:bg-[#0367A6] hover:text-white transition-colors">
+              <span class="material-symbols-outlined text-lg font-variation-settings-wght-400">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

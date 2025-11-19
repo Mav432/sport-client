@@ -5,62 +5,110 @@
       <div class="flex items-center">
         <a routerLink="/" class="flex items-center">
           <!-- ✅ AGREGAR CLASES CSS AL LOGO -->
-          <img src="/assets/images/logo_sportcenter.png" alt="SportCenter" class="h-10 w-auto">
+          <img src="/assets/images/logo_sportcenter.png" alt="SportCenter" class="h-10 w-auto" />
         </a>
       </div>
 
       <!-- Navigation Links -->
       <div class="hidden md:flex items-center space-x-8">
-        <a routerLink="/products" 
-           routerLinkActive="text-[#0367A6]" 
-           class="text-[#666666] hover:text-[#0367A6] px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                <a
+          routerLink="/"
+          routerLinkActive="text-[#0367A6]"
+          class="text-[#666666] hover:text-[#0367A6] px-3 py-2 rounded-md text-sm font-medium transition-colors"
+        >
+          Home
+        </a>
+        <a
+          routerLink="/products"
+          routerLinkActive="text-[#0367A6]"
+          class="text-[#666666] hover:text-[#0367A6] px-3 py-2 rounded-md text-sm font-medium transition-colors"
+        >
           Productos
         </a>
-        <a routerLink="/ofertas" 
-           routerLinkActive="text-[#0367A6]" 
-           class="text-[#666666] hover:text-[#0367A6] px-3 py-2 rounded-md text-sm font-medium transition-colors">
+        <!-- <a
+          routerLink="/ofertas"
+          routerLinkActive="text-[#0367A6]"
+          class="text-[#666666] hover:text-[#0367A6] px-3 py-2 rounded-md text-sm font-medium transition-colors"
+        >
           Ofertas
-        </a>
-        <a routerLink="/cart" 
-           routerLinkActive="text-[#0367A6]" 
-           class="text-[#666666] hover:text-[#0367A6] px-3 py-2 rounded-md text-sm font-medium transition-colors relative">
-          <span class="material-symbols-outlined font-variation-settings-wght-400">shopping_cart</span>
-          <span class="absolute -top-1 -right-1 bg-[#FF7A00] text-[#202020] text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">3</span>
-        </a>
+        </a> -->
       </div>
 
       <!-- Search Bar -->
       <div class="hidden lg:flex flex-1 max-w-md mx-8">
         <div class="relative w-full">
-          <input 
-            type="text" 
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (keypress)="onSearchKeyPress($event)"
             placeholder="Buscar productos deportivos..."
-            class="w-full pl-10 pr-4 py-2 border border-[#A6A6A6] rounded-lg focus:ring-2 focus:ring-[#0367A6] focus:border-[#0367A6] outline-none transition-colors">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-[#A6A6A6] font-variation-settings-wght-400">search</span>
+            class="w-full pl-10 pr-12 py-2 border border-[#A6A6A6] rounded-lg focus:ring-2 focus:ring-[#0367A6] focus:border-[#0367A6] outline-none transition-colors"
+          />
+          <span
+            class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-[#A6A6A6] font-variation-settings-wght-400"
+            >search</span
+          >
+          <button
+            (click)="onSearch()"
+            class="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-[#0367A6] hover:bg-[#0367A6] hover:text-white rounded transition-colors"
+          >
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
         </div>
       </div>
 
+      <!-- shopping cart -->
+      <div class="hidden md:flex items-center space-x-8">
+        <a
+          routerLink="/cart"
+          routerLinkActive="text-[#0367A6]"
+          class="text-[#666666] hover:text-[#0367A6] px-3 py-2 rounded-md text-sm font-medium transition-colors relative"
+        >
+          <span class="material-symbols-outlined font-variation-settings-wght-400"
+            >shopping_cart</span
+          >
+          <span
+            *ngIf="cartItemCount() > 0"
+            class="absolute -top-1 -right-1 bg-[#FF7A00] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium min-w-5"
+          >
+            {{ cartItemCount() > 99 ? '99+' : cartItemCount() }}
+          </span>
+        </a>
+      </div>
+
       <!-- Auth Buttons -->
-      <div class="flex items-center space-x-4">
-        <ng-container *ngIf="authService.isLoggedIn()">
-          <a [routerLink]="getDashboardLink()" 
-             class="text-[#666666] hover:text-[#0367A6] px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2">
-            <span class="material-symbols-outlined font-variation-settings-wght-400">account_circle</span>
-            <span>{{ authService.currentUser()?.nombre }}</span>
+      <div class="flex items-center space-x-8">
+        <ng-container *ngIf="authServicePublic.isLoggedIn()">
+          <a
+            [routerLink]="getDashboardLink()"
+            class="text-[#666666] hover:text-[#0367A6] px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined font-variation-settings-wght-400"
+              >account_circle</span
+            >
+            <span>{{ authServicePublic.currentUser()?.nombre }}</span>
           </a>
-          <button (click)="logout()"
-             class="bg-[#FF7A00] hover:bg-[#E66D00] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-            <span class="material-symbols-outlined font-variation-settings-wght-400 text-base">logout</span>
+          <button
+            (click)="logout()"
+            class="bg-[#FF7A00] hover:bg-[#E66D00] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined font-variation-settings-wght-400 text-base"
+              >logout</span
+            >
             Cerrar Sesión
           </button>
         </ng-container>
-        <ng-container *ngIf="!authService.isLoggedIn()">
-          <a routerLink="/auth/login" 
-             class="text-[#666666] hover:text-[#0367A6] px-3 py-2 rounded-md text-sm font-medium transition-colors">
+        <ng-container *ngIf="!authServicePublic.isLoggedIn()">
+          <a
+            routerLink="/auth/login"
+            class="text-[#666666] hover:text-[#0367A6] px-3 py-2 rounded-md text-sm font-medium transition-colors"
+          >
             Iniciar Sesión
           </a>
-          <a routerLink="/auth/register" 
-             class="bg-[#0367A6] hover:bg-[#035A91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          <a
+            routerLink="/auth/register"
+            class="bg-[#0367A6] hover:bg-[#035A91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
             Registrarse
           </a>
         </ng-container>
@@ -68,10 +116,34 @@
 
       <!-- Mobile menu button -->
       <div class="md:hidden">
-        <button class="text-[#666666] hover:text-[#0367A6]">
+        <button (click)="toggleMobileMenu()" class="text-[#666666] hover:text-[#0367A6] focus:outline-none">
           <span class="material-symbols-outlined font-variation-settings-wght-400">menu</span>
         </button>
       </div>
     </div>
   </div>
 </nav>
+
+<!-- Mobile menu content -->
+<div *ngIf="mobileMenuOpen()" class="md:hidden bg-white border-b border-gray-100 shadow-sm">
+  <div class="px-4 pt-4 pb-6 space-y-4">
+    <div>
+      <input type="text" [(ngModel)]="searchTerm" (keypress)="onSearchKeyPress($event)" placeholder="Buscar..." class="w-full px-3 py-2 border rounded-lg" />
+    </div>
+    <div class="flex flex-col space-y-2">
+      <a routerLink="/" (click)="toggleMobileMenu()" class="block px-3 py-2 text-[#666666] hover:text-[#0367A6]">Home</a>
+      <a routerLink="/products" (click)="toggleMobileMenu()" class="block px-3 py-2 text-[#666666] hover:text-[#0367A6]">Productos</a>
+      <a routerLink="/cart" (click)="toggleMobileMenu()" class="block px-3 py-2 text-[#666666] hover:text-[#0367A6]">Carrito</a>
+    </div>
+    <div class="pt-2 border-t">
+      <ng-container *ngIf="authServicePublic.isLoggedIn(); else guestLinks">
+        <a [routerLink]="getDashboardLink()" (click)="toggleMobileMenu()" class="block px-3 py-2 text-[#666666] hover:text-[#0367A6]">Mi Cuenta</a>
+        <button (click)="logout(); toggleMobileMenu()" class="w-full text-left px-3 py-2 text-red-600">Cerrar Sesión</button>
+      </ng-container>
+      <ng-template #guestLinks>
+        <a routerLink="/auth/login" (click)="toggleMobileMenu()" class="block px-3 py-2 text-[#666666] hover:text-[#0367A6]">Iniciar Sesión</a>
+        <a routerLink="/auth/register" (click)="toggleMobileMenu()" class="block px-3 py-2 text-[#0367A6]">Registrarse</a>
+      </ng-template>
+    </div>
+  </div>
+</div>

@@ -4,6 +4,8 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
+import { ProductService } from '../../../core/services/product.service';
+import { Product } from '../../../core/models/product.model';
 import { User, UserRole } from '../../../core/models/user.model';
 import { environment } from '../../../../environments/environment';
 
@@ -17,6 +19,7 @@ import { environment } from '../../../../environments/environment';
 export class DashboardAdmin implements OnInit {
   private authService = inject(AuthService);
   private http = inject(HttpClient);
+  private productService = inject(ProductService);
   
   currentUser: User | null = null;
   private readonly API_URL = environment.apiUrl;
@@ -54,9 +57,37 @@ export class DashboardAdmin implements OnInit {
   // Enum para template
   UserRole = UserRole;
 
+  // Gestión de productos
+  productos: Product[] = [];
+  showProductModal = false;
+  isEditProductMode = false;
+  selectedProduct: Product | null = null;
+
+  productForm: Partial<Product> = {
+    nombre: '',
+    categoria: 'todos',
+    marca: '',
+    descripcion: '',
+    disponible: true,
+    stock: 0,
+    precio: 0
+  };
+
   ngOnInit() {
     this.currentUser = this.authService.currentUser();
     this.loadUsers();
+    this.loadProducts();
+  }
+
+  loadProducts() {
+    this.productService.getProducts().subscribe({
+      next: (products) => {
+        this.productos = products;
+      },
+      error: (err) => {
+        console.error('Error cargando productos en admin:', err);
+      }
+    });
   }
 
   loadUsers() {
@@ -139,6 +170,70 @@ export class DashboardAdmin implements OnInit {
       activo: user.activo
     };
     this.showUserModal = true;
+  }
+
+  /* Productos: Modal */
+  openCreateProductModal() {
+    this.isEditProductMode = false;
+    this.selectedProduct = null;
+    this.resetProductForm();
+    this.showProductModal = true;
+  }
+
+  openEditProductModal(product: Product) {
+    this.isEditProductMode = true;
+    this.selectedProduct = product;
+    this.productForm = { ...product };
+    this.showProductModal = true;
+  }
+
+  closeProductModal() {
+    this.showProductModal = false;
+    this.resetProductForm();
+  }
+
+  resetProductForm() {
+    this.productForm = {
+      nombre: '',
+      categoria: 'otros',
+      marca: '',
+      descripcion: '',
+      disponible: true,
+      stock: 0,
+      precio: 0
+    };
+  }
+
+  saveProduct() {
+    if (this.isEditProductMode && this.selectedProduct) {
+      // Editar en mock
+      Object.assign(this.selectedProduct, this.productForm);
+      this.loadProducts();
+      this.closeProductModal();
+    } else {
+      // Crear nuevo producto via ProductService (mock)
+      this.productService.addProduct(this.productForm).subscribe({
+        next: (p) => {
+          this.productos.push(p);
+          this.closeProductModal();
+        },
+        error: (err) => {
+          console.error('Error creando producto:', err);
+        }
+      });
+    }
+  }
+
+  deleteProduct(product: Product) {
+    if (!confirm(`¿Eliminar producto ${product.nombre}?`)) return;
+    this.productService.deleteProduct(product.id).subscribe({
+      next: () => {
+        this.productos = this.productos.filter(p => p.id !== product.id);
+      },
+      error: (err) => {
+        console.error('Error eliminando producto:', err);
+      }
+    });
   }
 
   closeModal() {

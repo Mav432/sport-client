@@ -1,1 +1,151 @@
-<p>product-detail works!</p>
+<!-- Loading State -->
+<div *ngIf="isLoading()" class="flex justify-center items-center min-h-[400px]">
+  <div class="text-center">
+    <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-spurt-primary mx-auto mb-4"></div>
+    <p class="text-gray-600">Cargando producto...</p>
+  </div>
+</div>
+
+<!-- Product Detail -->
+<div *ngIf="!isLoading() && product()" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Breadcrumbs -->
+  <app-breadcrumbs [items]="breadcrumbs()"></app-breadcrumbs>
+
+  <!-- Product Content -->
+  <div class="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
+    <!-- Product Images -->
+    <div class="flex flex-col-reverse">
+      <!-- Main Image -->
+      <div class="aspect-w-1 aspect-h-1 w-full">
+        <img 
+          [src]="product()?.imagen" 
+          [alt]="product()?.nombre"
+          class="w-full h-96 object-cover sm:h-[500px] rounded-lg border border-gray-200">
+      </div>
+    </div>
+
+    <!-- Product Info -->
+    <div class="mt-10 px-4 sm:px-0 sm:mt-16 lg:mt-0">
+      <!-- Product Name and Brand -->
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{ product()?.nombre }}</h1>
+      <p *ngIf="product()?.marca" class="text-lg text-gray-600 mt-1">{{ product()?.marca }}</p>
+
+      <!-- Price -->
+      <div class="mt-6">
+        <div class="flex items-center space-x-3">
+          <span class="text-3xl font-bold text-gray-900">
+            ${{ getPriceWithDiscount() | number:'1.0-0' }}
+          </span>
+          <span *ngIf="hasDiscount()" class="text-lg text-gray-500 line-through">
+            ${{ product()?.precio | number:'1.0-0' }}
+          </span>
+          <span *ngIf="hasDiscount()" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            -{{ product()?.descuento }}%
+          </span>
+        </div>
+      </div>
+
+      <!-- Stock Status -->
+      <div class="mt-4">
+        <p class="text-sm font-medium" [ngClass]="getStockClass()">
+          <span class="material-symbols-outlined text-sm mr-1">inventory</span>
+          {{ getStockText() }}
+        </p>
+      </div>
+
+      <!-- Description -->
+      <div class="mt-6">
+        <h3 class="text-sm font-medium text-gray-900">Descripción</h3>
+        <div class="mt-2 prose prose-sm text-gray-600">
+          <p>{{ product()?.descripcion }}</p>
+        </div>
+      </div>
+
+      <!-- Size Selection -->
+      <div *ngIf="product()?.talla && product()?.talla!.length > 0" class="mt-6">
+        <h3 class="text-sm font-medium text-gray-900 mb-3">Talla</h3>
+        <div class="flex flex-wrap gap-2">
+          <button
+            *ngFor="let size of product()?.talla"
+            (click)="selectSize(size)"
+            [class]="selectedSize() === size ? 
+              'bg-spurt-primary text-white border-spurt-primary' : 
+              'bg-white text-gray-900 border-gray-300 hover:border-gray-400'"
+            class="px-4 py-2 text-sm font-medium border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spurt-primary transition-colors">
+            {{ size }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Color Selection -->
+      <div *ngIf="product()?.color && product()?.color!.length > 0" class="mt-6">
+        <h3 class="text-sm font-medium text-gray-900 mb-3">Color</h3>
+        <div class="flex flex-wrap gap-2">
+          <button
+            *ngFor="let color of product()?.color"
+            (click)="selectColor(color)"
+            [class]="selectedColor() === color ? 
+              'bg-spurt-primary text-white border-spurt-primary' : 
+              'bg-white text-gray-900 border-gray-300 hover:border-gray-400'"
+            class="px-4 py-2 text-sm font-medium border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spurt-primary transition-colors">
+            {{ color }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Quantity -->
+      <div class="mt-6">
+        <h3 class="text-sm font-medium text-gray-900 mb-3">Cantidad</h3>
+        <div class="flex items-center space-x-3">
+          <button 
+            (click)="decreaseQuantity()"
+            [disabled]="selectedQuantity() <= 1"
+            class="inline-flex items-center justify-center w-10 h-10 border border-gray-300 rounded-md text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spurt-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            <span class="material-symbols-outlined text-lg">remove</span>
+          </button>
+          
+          <span class="inline-flex items-center justify-center w-16 h-10 text-lg font-medium text-gray-900 bg-gray-50 border border-gray-300 rounded-md">
+            {{ selectedQuantity() }}
+          </span>
+          
+          <button 
+            (click)="increaseQuantity()"
+            [disabled]="!product()?.disponible || selectedQuantity() >= product()!.stock"
+            class="inline-flex items-center justify-center w-10 h-10 border border-gray-300 rounded-md text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spurt-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            <span class="material-symbols-outlined text-lg">add</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Total Price -->
+      <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+        <div class="flex justify-between items-center">
+          <span class="text-lg font-medium text-gray-900">Total:</span>
+          <span class="text-2xl font-bold text-spurt-primary">
+            ${{ getTotalPrice() | number:'1.0-0' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Add to Cart Button -->
+      <div class="mt-8">
+        <button
+          (click)="addToCart()"
+          [disabled]="!product()?.disponible || product()!.stock === 0"
+          class="w-full bg-spurt-primary border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-spurt-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-spurt-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          <span class="material-symbols-outlined mr-2">shopping_cart</span>
+          <span *ngIf="product()?.disponible && product()!.stock > 0">Agregar al carrito</span>
+          <span *ngIf="!product()?.disponible || product()!.stock === 0">No disponible</span>
+        </button>
+      </div>
+
+      <!-- Essential Info Only -->
+      <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+        <div class="flex items-center text-sm text-blue-800">
+          <span class="material-symbols-outlined text-sm mr-2">local_shipping</span>
+          <span>Envío gratis en compras superiores a $50,000</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

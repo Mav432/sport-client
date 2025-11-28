@@ -55,6 +55,11 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "ssl": true,
+            "sslKey":"src/certs/localhost-key.pem",
+            "sslCert": "src/certs/localhost.pem"
+          },
           "configurations": {
             "production": {
               "buildTarget": "ecommerce-app:build:production"

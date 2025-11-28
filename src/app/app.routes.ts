@@ -40,6 +40,11 @@ export const routes: Routes = [
     canActivate: [guestGuard]
   },
   {
+    path: 'auth/forgot-password',
+    loadComponent: () => import('./features/auth/forgot-password/forgot-password').then(m => m.ForgotPassword),
+    canActivate: [guestGuard]
+  },
+  {
     path: 'dashboard',
     loadComponent: () => import('./features/dashboard/dashboard').then(m => m.Dashboard),
     canActivate: [authGuard]

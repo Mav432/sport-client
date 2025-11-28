@@ -49,3 +49,11 @@ Thumbs.db
 .env.production
 
 src/environments
+
+# SSL Certificates - no incluir en repositorio
+/certs
+certs/
+*.pem
+*.key
+*.crt
+*.cert

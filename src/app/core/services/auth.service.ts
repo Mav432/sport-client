@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, BehaviorSubject, tap, catchError, throwError } from 'rxjs';
+import { Observable, BehaviorSubject, tap, catchError, throwError, map } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../../environments/environment';
 import {
@@ -14,6 +14,9 @@ import {
   UserRole,
   getDashboardRoute
 } from '../models/user.model';
+import { TokenService } from './token.service';
+import { SessionService } from './session.service';
+import { CsrfTokenService } from './csrf-token.service';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +25,9 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   private toastr = inject(ToastrService);
+  private tokenService = inject(TokenService);
+  private sessionService = inject(SessionService);
+  private csrfTokenService = inject(CsrfTokenService);
 
   // API Base URL desde environment
   private readonly API_URL = environment.apiUrl;
@@ -46,6 +52,15 @@ export class AuthService {
   }
 
   /**
+   * Observable del usuario actual para reactividad
+   */
+  currentUser$(): Observable<User | null> {
+    return this.authState$.asObservable().pipe(
+      map(state => state.user)
+    );
+  }
+
+  /**
    * Cargar estado de autenticación desde localStorage
    */
   private loadAuthState(): void {
@@ -63,6 +78,11 @@ export class AuthService {
 
         const user = JSON.parse(userStr);
         this.updateAuthState(true, user, token);
+        
+        // Inicializar servicios de seguridad
+        this.tokenService.setAccessToken(token);
+        this.csrfTokenService.initializeCsrfProtection();
+        this.sessionService.startInactivityCountdown();
       }
     } catch (error) {
       console.error('Error loading auth state:', error);
@@ -106,13 +126,20 @@ export class AuthService {
    */
   private saveAuthData(token: string, user: User): void {
     try {
+      // Guardar en localStorage
       localStorage.setItem(this.TOKEN_KEY, token);
       localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-      
-      // También guardar timestamp para debugging
       localStorage.setItem('auth_timestamp', new Date().toISOString());
       
+      // Guardar en servicios de seguridad
+      this.tokenService.setAccessToken(token);
+      this.csrfTokenService.initializeCsrfProtection();
+      
       this.updateAuthState(true, user, token);
+      
+      // Iniciar monitoreo de sesión
+      this.sessionService.startInactivityCountdown();
+      this.sessionService.clearFailedAttempts(user.email);
       
       console.log('✅ Sesión guardada correctamente');
     } catch (error) {
@@ -128,6 +155,10 @@ export class AuthService {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     localStorage.removeItem('auth_timestamp');
+    
+    this.tokenService.clearTokens();
+    this.csrfTokenService.clearToken();
+    
     this.updateAuthState(false, null, null);
     
     console.log('🔐 Sesión limpiada');
@@ -137,6 +168,17 @@ export class AuthService {
    * LOGIN - Iniciar sesión
    */
   login(credentials: LoginRequest): Observable<any> {
+    // Verificar si la cuenta está bloqueada
+    if (this.sessionService.checkAccountLock(credentials.email)) {
+      const remainingTime = this.sessionService.getRemainingLockTime(credentials.email);
+      const minutes = Math.ceil(remainingTime / 60000);
+      this.toastr.error(
+        `Tu cuenta está bloqueada por ${minutes} minuto(s) debido a múltiples intentos fallidos.`,
+        'Cuenta Bloqueada'
+      );
+      return throwError(() => new Error('Account locked'));
+    }
+
     return this.http.post<any>(
       `${this.API_URL}/users/login-user`,
       credentials
@@ -171,8 +213,24 @@ export class AuthService {
       }),
       catchError(error => {
         console.error('Login error:', error);
-        const message = error.error?.message || error.error?.error || 'Error al iniciar sesión. Verifica tus credenciales.';
-        this.toastr.error(message, 'Error de Autenticación');
+        
+        // Registrar intento fallido
+        this.sessionService.recordFailedAttempt(credentials.email);
+        
+        // Verificar si la cuenta debe bloquearse
+        if (this.sessionService.checkAccountLock(credentials.email)) {
+          this.sessionService.lockAccount(credentials.email);
+          this.toastr.error(
+            'Tu cuenta ha sido bloqueada por múltiples intentos fallidos. Intenta nuevamente en 5 minutos.',
+            'Cuenta Bloqueada'
+          );
+        } else {
+          const failedAttempts = this.sessionService.getFailedAttempts(credentials.email);
+          const remaining = 5 - failedAttempts;
+          const message = error.error?.message || error.error?.error || 'Error al iniciar sesión. Verifica tus credenciales.';
+          this.toastr.error(`${message} (${remaining} intentos restantes)`, 'Error de Autenticación');
+        }
+        
         return throwError(() => error);
       })
     );
@@ -245,7 +303,7 @@ export class AuthService {
    * Obtener token actual
    */
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return this.tokenService.getAccessToken() || localStorage.getItem(this.TOKEN_KEY);
   }
 
   /**
@@ -299,5 +357,82 @@ export class AuthService {
   updateCurrentUser(user: User): void {
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     this.currentUser.set(user);
+  }
+
+  /**
+   * Obtener estado de sesión
+   */
+  getSessionStatus() {
+    return {
+      isActive: this.sessionService.isActive(),
+      remainingTime: this.sessionService.remainingTime(),
+      isLocked: this.sessionService.isAccountLocked()
+    };
+  }
+
+  /**
+   * FORGOT PASSWORD - Solicitar código de recuperación
+   */
+  requestPasswordReset(email: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.API_URL}/users/verify-user-email`,
+      { email }
+    ).pipe(
+      tap(response => {
+        this.toastr.success(
+          'Código enviado a tu email. Válido por 5 minutos.',
+          'Código Enviado'
+        );
+      }),
+      catchError(error => {
+        console.error('Password reset request error:', error);
+        const message = error.error?.message || 'Error al solicitar recuperación. Verifica que el email existe.';
+        this.toastr.error(message, 'Error');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * VERIFY CODE - Verificar código de recuperación
+   */
+  verifyRecoveryCode(email: string, token: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.API_URL}/users/verify-user-token`,
+      { email, token }
+    ).pipe(
+      tap(response => {
+        this.toastr.success('Código verificado correctamente', 'Verificación exitosa');
+      }),
+      catchError(error => {
+        console.error('Code verification error:', error);
+        const message = error.error?.message || 'Código inválido o expirado.';
+        this.toastr.error(message, 'Error');
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * RESET PASSWORD - Restablecer contraseña
+   */
+  resetPassword(email: string, newPassword: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.API_URL}/users/reset-psw`,
+      { email, psw: newPassword }
+    ).pipe(
+      tap(response => {
+        this.toastr.success(
+          'Contraseña restablecida correctamente. Inicia sesión con tu nueva contraseña.',
+          'Éxito'
+        );
+      }),
+      catchError(error => {
+        console.error('Password reset error:', error);
+        const message = error.error?.message || 'Error al restablecer la contraseña.';
+        this.toastr.error(message, 'Error');
+        return throwError(() => error);
+      })
+    );
   }
 }

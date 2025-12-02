@@ -1,8 +1,9 @@
-import { Component, inject, signal } from "@angular/core"
+import { Component, inject, signal, OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { FormsModule, ReactiveFormsModule } from "@angular/forms"
 import { RouterModule } from "@angular/router"
 import { AuthService } from '../../../core/services/auth.service';
+import { GoogleAuthService } from '../../../core/services/google-auth.service';
 import { RegisterRequest, UserRole } from '../../../core/models/user.model';
 import { 
   evaluatePasswordStrength,
@@ -27,8 +28,9 @@ import { PasswordStrengthComponent } from '../../../shared/components/password-s
   templateUrl: "./register.html",
   styleUrl: "./register.css"
 })
-export class Register {
+export class Register implements OnInit {
   private authService = inject(AuthService);
+  googleAuthService = inject(GoogleAuthService);  // Público para acceder desde template
 
   userData: RegisterRequest = {
     nombre: '',
@@ -54,6 +56,34 @@ export class Register {
   nameError = signal<string>('');
   passwordError = signal<string>('');
   secureError = signal<string>('');
+
+  ngOnInit() {
+    // Inicializar Google Auth si está disponible
+    this.initializeGoogle();
+  }
+
+  /**
+   * Inicializar Google Identity Services
+   */
+  private initializeGoogle(): void {
+    // Cliente ID configurado para Google OAuth
+    const googleClientId = '637508139644-n30pocvh0corlgsv79bmu4joagg46nrv.apps.googleusercontent.com';
+
+    if (googleClientId && googleClientId.includes('.apps.googleusercontent.com')) {
+      this.googleAuthService.initializeGoogle(googleClientId);
+      
+      // Renderizar botón de Google con delay para asegurar que DOM esté listo
+      setTimeout(() => {
+        this.googleAuthService.renderGoogleButton('google-signup-button', {
+          theme: 'outline',
+          size: 'large',
+          text: 'signup_with'
+        });
+      }, 300);
+    } else {
+      console.warn('⚠️ Google Client ID no está configurado');
+    }
+  }
 
   togglePassword() {
     this.showPassword = !this.showPassword;
@@ -242,7 +272,9 @@ export class Register {
   }
 
   registerWithGoogle() {
-    console.log('Google register - proximamente');
+    // El servicio de Google maneja todo automáticamente cuando el usuario hace click
+    // Solo necesita que el botón esté renderizado
+    console.log('Google Sign-In iniciado...');
   }
 
   registerWithFacebook() {

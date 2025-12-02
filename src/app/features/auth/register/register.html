@@ -88,6 +88,24 @@
             <span class="material-symbols-outlined text-xl font-variation-settings-wght-400" *ngIf="!isLoading">person_add</span>
             <span>{{ isLoading ? 'Creando Cuenta...' : 'Crear Cuenta' }}</span>
           </button>
+
+          <!-- Divider -->
+          <div class="relative py-3">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t-2 border-[#E9ECEF]"></div>
+            </div>
+            <div class="relative flex justify-center">
+              <span class="px-3 bg-white text-xs font-medium text-[#666666]">O regístrate con</span>
+            </div>
+          </div>
+
+          <!-- Google Sign-Up Button (rendered by Google) -->
+          <div id="google-signup-button" class="flex justify-center"></div>
+          
+          <!-- Fallback message if Google doesn't load -->
+          <div *ngIf="!googleAuthService.isGoogleAvailable()" class="text-center">
+            <p class="text-xs text-[#A6A6A6]">⚠️ Google Sign-In no disponible</p>
+          </div>
         </form>
       </div>
       <div class="text-center mt-6">

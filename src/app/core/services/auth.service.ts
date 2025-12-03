@@ -47,6 +47,9 @@ export class AuthService {
   public currentUser = signal<User | null>(null);
   public isAuthenticated = signal<boolean>(false);
 
+  // Flag para indicar si hay autenticación en progreso (ej: Google OAuth)
+  private authenticationInProgress = false;
+
   constructor() {
     this.loadAuthState();
   }
@@ -357,6 +360,14 @@ export class AuthService {
   updateCurrentUser(user: User): void {
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     this.currentUser.set(user);
+    // 🔑 IMPORTANTE: También actualizar el signal de autenticación
+    this.isAuthenticated.set(true);
+    this.authState$.next({
+      isAuthenticated: true,
+      user: user,
+      token: this.getToken()
+    });
+    console.log('✅ Estado de autenticación actualizado en AuthService');
   }
 
   /**
@@ -368,6 +379,21 @@ export class AuthService {
       remainingTime: this.sessionService.remainingTime(),
       isLocked: this.sessionService.isAccountLocked()
     };
+  }
+
+  /**
+   * Establecer flag de autenticación en progreso (Google OAuth, etc)
+   */
+  setAuthenticationInProgress(inProgress: boolean): void {
+    this.authenticationInProgress = inProgress;
+    console.log(`🔄 Autenticación en progreso: ${inProgress}`);
+  }
+
+  /**
+   * Verificar si hay autenticación en progreso
+   */
+  isAuthenticationInProgress(): boolean {
+    return this.authenticationInProgress;
   }
 
   /**

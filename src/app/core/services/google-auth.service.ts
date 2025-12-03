@@ -7,6 +7,7 @@ import { User, UserRole, getDashboardRoute } from '../models/user.model';
 import { TokenService } from './token.service';
 import { SessionService } from './session.service';
 import { CsrfTokenService } from './csrf-token.service';
+import { AuthService } from './auth.service';
 
 // Declarar google global desde el script
 declare const google: any;
@@ -25,6 +26,7 @@ export class GoogleAuthService {
   private tokenService = inject(TokenService);
   private sessionService = inject(SessionService);
   private csrfTokenService = inject(CsrfTokenService);
+  private authService = inject(AuthService);
 
   private readonly API_URL = environment.apiUrl;
   private readonly TOKEN_KEY = environment.storageKeys.token;
@@ -94,6 +96,10 @@ export class GoogleAuthService {
    * Login con Google - Enviar ID Token al backend
    */
   loginWithGoogle(idToken: string): void {
+    // Establecer flag: autenticación en progreso
+    this.authService.setAuthenticationInProgress(true);
+    console.log('🔄 Iniciando login con Google...');
+
     this.http.post<any>(
       `${this.API_URL}/users/auth/google-login`,
       { idToken }
@@ -135,14 +141,21 @@ export class GoogleAuthService {
       // Guardar datos de autenticación
       this.saveAuthData(token, user);
 
+      // Mostrar mensaje de éxito
       this.toastr.success('¡Bienvenido! Autenticación exitosa', 'Login Exitoso');
+
+      // 🔑 Limpiar flag ANTES de redirigir (para que guestGuard no interfiera)
+      this.authService.setAuthenticationInProgress(false);
 
       // Redirigir según rol
       const dashboardRoute = getDashboardRoute(user.rol);
+      console.log('🚀 Redirigiendo a:', dashboardRoute);
       this.router.navigate([dashboardRoute]);
     } catch (error) {
       console.error('❌ Error procesando respuesta de Google:', error);
       this.toastr.error('Error al procesar autenticación', 'Error');
+      // Limpiar flag en caso de error
+      this.authService.setAuthenticationInProgress(false);
     }
   }
 
@@ -157,6 +170,9 @@ export class GoogleAuthService {
                    'Error al autenticarse con Google';
     
     this.toastr.error(message, 'Error de Autenticación');
+    
+    // Limpiar flag de autenticación en progreso
+    this.authService.setAuthenticationInProgress(false);
   }
 
   /**
@@ -173,6 +189,9 @@ export class GoogleAuthService {
 
       this.sessionService.clearFailedAttempts(user.email);
       this.sessionService.startInactivityCountdown();
+
+      // 🔑 IMPORTANTE: Actualizar estado en AuthService
+      this.authService.updateCurrentUser(user);
 
       console.log('✅ Sesión guardada correctamente');
     } catch (error) {

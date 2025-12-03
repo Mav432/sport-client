@@ -95,7 +95,7 @@ export class GoogleAuthService {
    */
   loginWithGoogle(idToken: string): void {
     this.http.post<any>(
-      `${this.API_URL}/auth/google-login`,
+      `${this.API_URL}/users/auth/google-login`,
       { idToken }
     ).subscribe({
       next: (response) => {

@@ -179,7 +179,7 @@ export function sqlInjectionDetector(): ValidatorFn {
     const sqlPatterns = [
       /(\b(UNION|SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE)\b)/gi,
       /(['";][\s\n]*(OR|AND)[\s\n]*['"];?)/gi,
-      /(--|\#|\/\*|\*\/)/gi, // SQL comments
+      /(--\/\*|\*\/)/gi, // Solo comentarios SQL sin #
       /(\bOR\b.*=.*)/gi,
       /(\b1\s*=\s*1\b)/gi,
       /(;\s*(DROP|DELETE|TRUNCATE))/gi
@@ -297,7 +297,7 @@ export function detectSQLInjection(input: string): boolean {
   const sqlPatterns = [
     /(\b(UNION|SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE)\b)/gi,
     /(['";][\s\n]*(OR|AND)[\s\n]*['"];?)/gi,
-    /(--|\#|\/\*|\*\/)/gi,
+    /(--\/\*|\*\/)/gi, // Solo comentarios SQL sin #
     /(\bOR\b.*=.*)/gi,
     /(\b1\s*=\s*1\b)/gi,
     /(;\s*(DROP|DELETE|TRUNCATE))/gi

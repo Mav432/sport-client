@@ -28,6 +28,12 @@ export class ProductService {
       descripcion: 'Balón profesional de fútbol Nike Pro con tecnología de última generación.',
       precio: 450.00,
       imagen: 'https://images.unsplash.com/photo-1614632537190-23e4146777db?w=400&h=400&fit=crop',
+      imagenes: [
+        'https://images.unsplash.com/photo-1614632537190-23e4146777db?w=400&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1614632537190-23e4146777db?w=400&h=400&fit=crop&blur=2',
+        'https://images.unsplash.com/photo-1614632537190-23e4146777db?w=400&h=400&fit=crop&sat=-50',
+        'https://images.unsplash.com/photo-1614632537190-23e4146777db?w=400&h=400&fit=crop&hue=20'
+      ],
       categoria: 'futbol',
       stock: 15,
       disponible: true,
@@ -41,6 +47,12 @@ export class ProductService {
       descripcion: 'Tenis para correr con tecnología Boost de Adidas. Máximo confort.',
       precio: 1200.00,
       imagen: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop',
+      imagenes: [
+        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop&blur=2',
+        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop&sat=-100',
+        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop&hue=30'
+      ],
       categoria: 'running',
       stock: 8,
       disponible: true,
@@ -51,17 +63,23 @@ export class ProductService {
     },
     {
       id: 3,
-      nombre: 'Camiseta Barcelona 2025',
-      descripcion: 'Jersey oficial del FC Barcelona temporada 2025. Material Dri-FIT.',
-      precio: 1800.00,
-      imagen: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=400&fit=crop',
-      categoria: 'futbol',
-      stock: 3,
+      nombre: 'Tenis New Balance',
+      descripcion: 'Tenis para correr con tecnología Boost de Adidas. Máximo confort.',
+      precio: 1200.00,
+      imagen: '/assets/images/products/tenis_3d.webp',
+      imagenes: [
+        '/assets/images/products/tenis_3d-1.webp',
+        '/assets/images/products/tenis_3d-2.webp',
+        '/assets/images/products/tenis_3d-3.webp',
+        '/assets/images/products/QR_tennis-3d.jpeg'
+      ],
+      categoria: 'Lifestyle',
+      stock: 8,
       disponible: true,
-      marca: 'Nike',
-      talla: ['S', 'M', 'L', 'XL'],
-      color: ['Rojo/Azul'],
-      descuento: 0
+      marca: 'NB',
+      talla: ['26', '27', '28', '29'],
+      color: ['Blanco', 'Azul', 'Gris'],
+      descuento: 10
     },
     {
       id: 4,
@@ -69,6 +87,12 @@ export class ProductService {
       descripcion: 'Guantes profesionales para portero con grip superior.',
       precio: 890.00,
       imagen: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
+      imagenes: [
+        'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop&blur=2',
+        'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop&sat=-50',
+        'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop&hue=90'
+      ],
       categoria: 'futbol',
       stock: 12,
       disponible: true,
@@ -83,6 +107,12 @@ export class ProductService {
       descripcion: 'Pelota oficial de basketball Wilson para competencias.',
       precio: 650.00,
       imagen: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=400&fit=crop',
+      imagenes: [
+        'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=400&fit=crop&blur=2',
+        'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=400&fit=crop&sat=-50',
+        'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=400&fit=crop&hue=10'
+      ],
       categoria: 'basketball',
       stock: 20,
       disponible: true,
@@ -96,6 +126,12 @@ export class ProductService {
       descripcion: 'Raqueta profesional Head con tecnología Graphene 360+.',
       precio: 2500.00,
       imagen: 'https://images.unsplash.com/photo-1530915365347-e35b7267196f?w=400&h=400&fit=crop',
+      imagenes: [
+        'https://images.unsplash.com/photo-1530915365347-e35b7267196f?w=400&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1530915365347-e35b7267196f?w=400&h=400&fit=crop&blur=2',
+        'https://images.unsplash.com/photo-1530915365347-e35b7267196f?w=400&h=400&fit=crop&sat=-50',
+        'https://images.unsplash.com/photo-1530915365347-e35b7267196f?w=400&h=400&fit=crop&hue=180'
+      ],
       categoria: 'tenis',
       stock: 0,
       disponible: false,
@@ -114,6 +150,12 @@ export class ProductService {
         descripcion: 'Camiseta transpirable para entrenamiento de alto rendimiento.',
         precio: 299.99,
         imagen: 'https://images.unsplash.com/photo-1520975913541-6d1f0d1f1a6b?w=400&h=400&fit=crop',
+        imagenes: [
+          'https://images.unsplash.com/photo-1520975913541-6d1f0d1f1a6b?w=400&h=400&fit=crop',
+          'https://images.unsplash.com/photo-1520975913541-6d1f0d1f1a6b?w=400&h=400&fit=crop&blur=2',
+          'https://images.unsplash.com/photo-1520975913541-6d1f0d1f1a6b?w=400&h=400&fit=crop&sat=-50',
+          'https://images.unsplash.com/photo-1520975913541-6d1f0d1f1a6b?w=400&h=400&fit=crop&hue=200'
+        ],
         categoria: 'fitness',
         stock: 40,
         disponible: true,
@@ -127,6 +169,12 @@ export class ProductService {
         descripcion: 'Par de mancuernas hexagonales recubiertas en goma.',
         precio: 950.00,
         imagen: 'https://images.unsplash.com/photo-1599058917217-6d0d3d3d0f7b?w=400&h=400&fit=crop',
+        imagenes: [
+          'https://images.unsplash.com/photo-1599058917217-6d0d3d3d0f7b?w=400&h=400&fit=crop',
+          'https://images.unsplash.com/photo-1599058917217-6d0d3d3d0f7b?w=400&h=400&fit=crop&blur=2',
+          'https://images.unsplash.com/photo-1599058917217-6d0d3d3d0f7b?w=400&h=400&fit=crop&sat=-50',
+          'https://images.unsplash.com/photo-1599058917217-6d0d3d3d0f7b?w=400&h=400&fit=crop&hue=30'
+        ],
         categoria: 'fitness',
         stock: 25,
         disponible: true,
@@ -139,6 +187,12 @@ export class ProductService {
         descripcion: 'Cinta plegable con monitor y varios niveles de resistencia.',
         precio: 7800.00,
         imagen: 'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=400&h=400&fit=crop',
+        imagenes: [
+          'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=400&h=400&fit=crop',
+          'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=400&h=400&fit=crop&blur=2',
+          'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=400&h=400&fit=crop&sat=-50',
+          'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=400&h=400&fit=crop&hue=120'
+        ],
         categoria: 'running',
         stock: 4,
         disponible: true,
@@ -151,6 +205,12 @@ export class ProductService {
         descripcion: 'Balón de futsal con excelente control y durabilidad.',
         precio: 220.00,
         imagen: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&h=400&fit=crop',
+        imagenes: [
+          'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&h=400&fit=crop',
+          'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&h=400&fit=crop&blur=2',
+          'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&h=400&fit=crop&sat=-50',
+          'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&h=400&fit=crop&hue=270'
+        ],
         categoria: 'futbol',
         stock: 50,
         disponible: true,
@@ -163,6 +223,12 @@ export class ProductService {
         descripcion: 'Gorra ligera con protección UV y ajuste trasero.',
         precio: 149.99,
         imagen: 'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=400&h=400&fit=crop',
+        imagenes: [
+          'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=400&h=400&fit=crop',
+          'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=400&h=400&fit=crop&blur=2',
+          'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=400&h=400&fit=crop&sat=-50',
+          'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=400&h=400&fit=crop&hue=60'
+        ],
         categoria: 'running',
         stock: 120,
         disponible: true,
@@ -175,6 +241,12 @@ export class ProductService {
         descripcion: 'Shorts transpirables y amplios para máxima movilidad.',
         precio: 199.99,
         imagen: 'https://images.unsplash.com/photo-1552345386-cae9b8c1b3b1?w=400&h=400&fit=crop',
+        imagenes: [
+          'https://images.unsplash.com/photo-1552345386-cae9b8c1b3b1?w=400&h=400&fit=crop',
+          'https://images.unsplash.com/photo-1552345386-cae9b8c1b3b1?w=400&h=400&fit=crop&blur=2',
+          'https://images.unsplash.com/photo-1552345386-cae9b8c1b3b1?w=400&h=400&fit=crop&sat=-50',
+          'https://images.unsplash.com/photo-1552345386-cae9b8c1b3b1?w=400&h=400&fit=crop&hue=150'
+        ],
         categoria: 'basketball',
         stock: 33,
         disponible: true,
@@ -187,6 +259,12 @@ export class ProductService {
         descripcion: 'Chamarra térmica con aislamiento para entrenamiento en clima frío.',
         precio: 699.50,
         imagen: 'https://images.unsplash.com/photo-1541534401786-0d9bbf0a1f80?w=400&h=400&fit=crop',
+        imagenes: [
+          'https://images.unsplash.com/photo-1541534401786-0d9bbf0a1f80?w=400&h=400&fit=crop',
+          'https://images.unsplash.com/photo-1541534401786-0d9bbf0a1f80?w=400&h=400&fit=crop&blur=2',
+          'https://images.unsplash.com/photo-1541534401786-0d9bbf0a1f80?w=400&h=400&fit=crop&sat=-50',
+          'https://images.unsplash.com/photo-1541534401786-0d9bbf0a1f80?w=400&h=400&fit=crop&hue=240'
+        ],
         categoria: 'fitness',
         stock: 18,
         disponible: true,
@@ -199,6 +277,12 @@ export class ProductService {
         descripcion: 'Calzado de fútbol sala con suela optimizada para indoor.',
         precio: 549.00,
         imagen: 'https://images.unsplash.com/photo-1520975698510-8280f60a12d5?w=400&h=400&fit=crop',
+        imagenes: [
+          'https://images.unsplash.com/photo-1520975698510-8280f60a12d5?w=400&h=400&fit=crop',
+          'https://images.unsplash.com/photo-1520975698510-8280f60a12d5?w=400&h=400&fit=crop&blur=2',
+          'https://images.unsplash.com/photo-1520975698510-8280f60a12d5?w=400&h=400&fit=crop&sat=-50',
+          'https://images.unsplash.com/photo-1520975698510-8280f60a12d5?w=400&h=400&fit=crop&hue=300'
+        ],
         categoria: 'futbol',
         stock: 9,
         disponible: true,

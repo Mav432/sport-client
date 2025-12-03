@@ -49,6 +49,9 @@ export class AuthService {
 
   // Flag para indicar si hay autenticación en progreso (ej: Google OAuth)
   private authenticationInProgress = false;
+  
+  // Flag para indicar si AuthService ya está redirigiendo
+  private navigationInProgress = false;
 
   constructor() {
     this.loadAuthState();
@@ -207,9 +210,17 @@ export class AuthService {
           this.saveAuthData(response.token, user);
           this.toastr.success(`¡Bienvenido!`, 'Login Exitoso');
           
+          // Establecer flag: navegación iniciada por AuthService
+          this.setNavigationInProgress(true);
+          
           // Redireccionar según rol
           const dashboardRoute = getDashboardRoute(user.rol);
-          this.router.navigate([dashboardRoute]);
+          this.router.navigate([dashboardRoute]).then(() => {
+            // Limpiar flag después de que la navegación se complete
+            setTimeout(() => {
+              this.setNavigationInProgress(false);
+            }, 100);
+          });
         } else {
           this.toastr.error('Respuesta inválida del servidor', 'Error');
         }
@@ -394,6 +405,21 @@ export class AuthService {
    */
   isAuthenticationInProgress(): boolean {
     return this.authenticationInProgress;
+  }
+
+  /**
+   * Establecer flag de navegación en progreso (AuthService redirigiendo)
+   */
+  setNavigationInProgress(inProgress: boolean): void {
+    this.navigationInProgress = inProgress;
+    console.log(`🚀 Navegación en progreso: ${inProgress}`);
+  }
+
+  /**
+   * Verificar si hay navegación en progreso
+   */
+  isNavigationInProgress(): boolean {
+    return this.navigationInProgress;
   }
 
   /**

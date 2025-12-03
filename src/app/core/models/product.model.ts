@@ -5,6 +5,7 @@ export interface Product {
   descripcion: string;
   precio: number;
   imagen: string;
+  imagenes?: string[]; // Array de 1 principal + 3 extras (máximo 4)
   categoria: string;
   stock: number;
   disponible: boolean;

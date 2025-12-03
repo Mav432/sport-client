@@ -53,9 +53,12 @@ export class Register implements OnInit {
   // Signals para validación en tiempo real
   passwordStrength = signal<PasswordStrength | null>(null);
   emailError = signal<string>('');
-  nameError = signal<string>('');
+  nombreError = signal<string>('');
+  aPaternoError = signal<string>('');
+  aMaternoError = signal<string>('');
   passwordError = signal<string>('');
   secureError = signal<string>('');
+  telefonoError = signal<string>('');
 
   ngOnInit() {
     // Inicializar Google Auth si está disponible
@@ -117,14 +120,21 @@ export class Register implements OnInit {
     this.userData[field] = trimmedValue;
     
     if (!trimmedValue) {
-      this.nameError.set('');
+      if (field === 'nombre') this.nombreError.set('');
+      else if (field === 'aPaterno') this.aPaternoError.set('');
+      else if (field === 'aMaterno') this.aMaternoError.set('');
       return;
     }
     
     if (!validateName(trimmedValue)) {
-      this.nameError.set('El nombre debe tener 2-50 caracteres (solo letras, espacios, guiones y acentos)');
+      const errorMsg = 'Formato inválido: 2-50 caracteres, solo letras, espacios y acentos';
+      if (field === 'nombre') this.nombreError.set(errorMsg);
+      else if (field === 'aPaterno') this.aPaternoError.set(errorMsg);
+      else if (field === 'aMaterno') this.aMaternoError.set(errorMsg);
     } else {
-      this.nameError.set('');
+      if (field === 'nombre') this.nombreError.set('');
+      else if (field === 'aPaterno') this.aPaternoError.set('');
+      else if (field === 'aMaterno') this.aMaternoError.set('');
     }
   }
 
@@ -198,29 +208,37 @@ export class Register implements OnInit {
    * Validación del formulario
    */
   validateForm(): boolean {
+    // Primero validar que acepte los términos (obligatorio)
+    if (!this.acceptTerms) {
+      return false;
+    }
+
     // Limpiar errores previos
-    this.nameError.set('');
+    this.nombreError.set('');
+    this.aPaternoError.set('');
+    this.aMaternoError.set('');
     this.emailError.set('');
+    this.telefonoError.set('');
     this.passwordError.set('');
     this.secureError.set('');
 
     // Validar nombre
     if (!this.userData.nombre || this.userData.nombre.trim().length === 0) {
-      this.nameError.set('El nombre es requerido');
+      this.nombreError.set('El nombre es requerido');
       return false;
     }
     if (!validateName(this.userData.nombre)) {
-      this.nameError.set('El nombre debe tener 2-50 caracteres (solo letras, espacios y acentos)');
+      this.nombreError.set('El nombre debe tener 2-50 caracteres (solo letras, espacios y acentos)');
       return false;
     }
 
     // Validar apellido paterno
     if (!this.userData.aPaterno || this.userData.aPaterno.trim().length === 0) {
-      this.nameError.set('El apellido paterno es requerido');
+      this.aPaternoError.set('El apellido paterno es requerido');
       return false;
     }
     if (!validateName(this.userData.aPaterno)) {
-      this.nameError.set('El apellido paterno debe tener 2-50 caracteres');
+      this.aPaternoError.set('El apellido paterno debe tener 2-50 caracteres');
       return false;
     }
 
@@ -236,7 +254,7 @@ export class Register implements OnInit {
 
     // Validar teléfono
     if (!this.userData.telefono || this.userData.telefono.trim().length === 0) {
-      this.nameError.set('El teléfono es requerido');
+      this.telefonoError.set('El teléfono es requerido');
       return false;
     }
 
@@ -262,12 +280,6 @@ export class Register implements OnInit {
       return false;
     }
 
-    // Validar términos
-    if (!this.acceptTerms) {
-      this.nameError.set('Debes aceptar los términos y condiciones');
-      return false;
-    }
-
     return true;
   }
 
@@ -279,5 +291,18 @@ export class Register implements OnInit {
 
   registerWithFacebook() {
     console.log('Facebook register - proximamente');
+  }
+
+  /**
+   * Verificar si el botón está habilitado
+   */
+  isSubmitDisabled(): boolean {
+    return this.isLoading || !this.acceptTerms || 
+           !this.userData.nombre || 
+           !this.userData.aPaterno || 
+           !this.userData.email || 
+           !this.userData.telefono || 
+           !this.userData.passw || 
+           !this.passwordsMatch();
   }
 }

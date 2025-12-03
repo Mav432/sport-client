@@ -20,6 +20,8 @@ export class ForgotPassword {
   private authService = inject(AuthService);
   private toastr = inject(ToastrService);
   private router = inject(Router);
+  private codeExpiryInterval: any; // Para limpiar el intervalo
+  private resendCooldownInterval: any; // Para el cooldown de reenvío
 
   // Estados
   currentStep = signal<ForgotPasswordStep>('email');
@@ -32,7 +34,9 @@ export class ForgotPassword {
   // Paso 2: Verificación de código
   recoveryCode = signal<string>('');
   codeError = signal<string>('');
-  codeExpiry = signal<number>(0); // Tiempo restante en segundos
+  codeExpiry = signal<number>(0); // Tiempo restante en segundos (24h del backend)
+  canResendCode = signal<boolean>(true); // Permite o bloquea reenvío
+  resendCooldown = signal<number>(0); // Countdown 60s entre reenvíos
   
   // Paso 3: Nueva contraseña
   newPassword = signal<string>('');
@@ -60,32 +64,79 @@ export class ForgotPassword {
       next: () => {
         this.isLoading.set(false);
         this.currentStep.set('verify');
+        this.recoveryCode.set('');
+        this.codeError.set('');
+        this.canResendCode.set(false); // Bloquea reenvío inicial
         this.startCodeExpiry();
+        this.startResendCooldown();
       },
-      error: () => {
+      error: (err) => {
         this.isLoading.set(false);
+        this.toastr.error(err?.error?.message || 'Error al enviar el código', 'Error');
       }
     });
   }
 
   /**
-   * Iniciar timer de expiración del código (5 minutos)
+   * Iniciar timer de expiración del código (24 horas desde backend)
+   * Mostramos "Válido por 24 horas" estático, sin countdown real
    */
   private startCodeExpiry() {
-    let seconds = 300; // 5 minutos
+    // Timer de 24h para referencia (86400 segundos)
+    // Pero NO mostramos countdown, solo "Válido por 24 horas"
+    let seconds = 86400; // 24 horas
     this.codeExpiry.set(seconds);
 
-    const interval = setInterval(() => {
+    this.codeExpiryInterval = setInterval(() => {
       seconds--;
       this.codeExpiry.set(seconds);
 
+      // Si llega a 0 (muy poco probable en práctica, usuario vería mensaje del backend)
       if (seconds <= 0) {
-        clearInterval(interval);
-        this.toastr.error('El código ha expirado. Solicita uno nuevo', 'Código Expirado');
-        this.currentStep.set('email');
-        this.recoveryCode.set('');
+        clearInterval(this.codeExpiryInterval);
       }
     }, 1000);
+  }
+
+  /**
+   * Cooldown de 60 segundos para reenvío de código
+   */
+  private startResendCooldown() {
+    let seconds = 60;
+    this.resendCooldown.set(seconds);
+    this.canResendCode.set(false);
+
+    this.resendCooldownInterval = setInterval(() => {
+      seconds--;
+      this.resendCooldown.set(seconds);
+
+      if (seconds <= 0) {
+        clearInterval(this.resendCooldownInterval);
+        this.canResendCode.set(true);
+        this.resendCooldown.set(0);
+      }
+    }, 1000);
+  }
+
+  /**
+   * Reenviar código (sin cambiar de paso)
+   */
+  resendCode() {
+    this.isLoading.set(true);
+
+    this.authService.requestPasswordReset(this.email()).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.toastr.success('Código reenviado a tu email', 'Éxito');
+        this.recoveryCode.set('');
+        this.codeError.set('');
+        this.startResendCooldown();
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.toastr.error(err?.error?.message || 'Error al reenviar el código', 'Error');
+      }
+    });
   }
 
   /**
@@ -104,10 +155,20 @@ export class ForgotPassword {
     this.authService.verifyRecoveryCode(this.email(), this.recoveryCode()).subscribe({
       next: () => {
         this.isLoading.set(false);
+        this.cleanupIntervals(); // Limpiar intervals al cambiar de paso
         this.currentStep.set('reset');
       },
-      error: () => {
+      error: (err) => {
         this.isLoading.set(false);
+        // Manejo de 3 intentos agotados desde backend
+        const message = err?.error?.message || 'Código inválido';
+        if (message.includes('intentos') || message.includes('agotado') || message.includes('expirado')) {
+          this.codeError.set(message);
+          // Dar opción de reenviar o volver
+          this.toastr.error(message, 'Código Inválido');
+        } else {
+          this.codeError.set(message);
+        }
       }
     });
   }
@@ -142,10 +203,13 @@ export class ForgotPassword {
     this.authService.resetPassword(this.email(), this.newPassword()).subscribe({
       next: () => {
         this.isLoading.set(false);
+        this.cleanupIntervals();
+        this.toastr.success('Contraseña restablecida exitosamente', 'Éxito');
         this.router.navigate(['/auth/login']);
       },
-      error: () => {
+      error: (err) => {
         this.isLoading.set(false);
+        this.toastr.error(err?.error?.message || 'Error al restablecer la contraseña', 'Error');
       }
     });
   }
@@ -182,16 +246,34 @@ export class ForgotPassword {
   }
 
   /**
-   * Volver al inicio
+   * Limpiar todos los intervals
+   */
+  private cleanupIntervals() {
+    if (this.codeExpiryInterval) clearInterval(this.codeExpiryInterval);
+    if (this.resendCooldownInterval) clearInterval(this.resendCooldownInterval);
+  }
+
+  /**
+   * Volver al paso anterior - LIMPIA ESTADO COMPLETAMENTE
    */
   goBack() {
     if (this.currentStep() === 'verify') {
+      // Volver a email: limpia TODO del paso 2
+      this.cleanupIntervals();
       this.currentStep.set('email');
       this.recoveryCode.set('');
+      this.codeError.set('');
+      this.codeExpiry.set(0);
+      this.canResendCode.set(true);
+      this.resendCooldown.set(0);
     } else if (this.currentStep() === 'reset') {
+      // Volver a verify: limpia solo contraseña
       this.currentStep.set('verify');
       this.newPassword.set('');
       this.confirmPassword.set('');
+      this.passwordError.set('');
+      this.secureError.set('');
+      this.passwordStrength.set(null);
     }
   }
 

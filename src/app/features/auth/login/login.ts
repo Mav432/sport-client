@@ -30,6 +30,23 @@ export class Login implements OnInit {
   ngOnInit() {
     // Inicializar Google Auth si está disponible
     this.initializeGoogle();
+    
+    // Cargar credenciales guardadas si existen
+    this.loadRememberedCredentials();
+  }
+
+  /**
+   * Cargar credenciales guardadas desde localStorage
+   */
+  private loadRememberedCredentials(): void {
+    const rememberedEmail = localStorage.getItem('sc_remember_email');
+    const rememberMeFlag = localStorage.getItem('sc_remember_me') === 'true';
+    
+    if (rememberedEmail && rememberMeFlag) {
+      this.credentials.email = rememberedEmail;
+      this.rememberMe = true;
+      console.log('✅ Credenciales recuperadas del localStorage');
+    }
   }
 
   /**
@@ -62,6 +79,17 @@ export class Login implements OnInit {
   onSubmit() {
     if (!this.credentials.email || !this.credentials.passw) {
       return;
+    }
+
+    // Guardar o limpiar credenciales según el checkbox
+    if (this.rememberMe) {
+      localStorage.setItem('sc_remember_email', this.credentials.email);
+      localStorage.setItem('sc_remember_me', 'true');
+      console.log('💾 Credenciales guardadas para próxima vez');
+    } else {
+      localStorage.removeItem('sc_remember_email');
+      localStorage.removeItem('sc_remember_me');
+      console.log('🗑️ Credenciales removidas del localStorage');
     }
 
     this.isLoading = true;

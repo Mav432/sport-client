@@ -45,6 +45,11 @@ export const routes: Routes = [
     canActivate: [guestGuard]
   },
   {
+    path: 'auth/email-verification',
+    loadComponent: () => import('./features/auth/email-verification/email-verification').then(m => m.EmailVerificationComponent),
+    canActivate: [guestGuard]
+  },
+  {
     path: 'dashboard',
     loadComponent: () => import('./features/dashboard/dashboard').then(m => m.Dashboard),
     canActivate: [authGuard]
@@ -73,3 +78,4 @@ export const routes: Routes = [
     redirectTo: '/home'
   }
 ];
+

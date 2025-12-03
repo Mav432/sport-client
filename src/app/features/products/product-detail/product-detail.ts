@@ -27,6 +27,7 @@ export class ProductDetail implements OnInit {
   selectedSize = signal<string>('');
   selectedColor = signal<string>('');
   mainImageIndex = signal<number>(0);
+  productImages = signal<string[]>([]); // Array de todas las imágenes
 
   // Breadcrumbs dinámicos
   breadcrumbs = computed((): BreadcrumbItem[] => {
@@ -57,6 +58,14 @@ export class ProductDetail implements OnInit {
       next: (product) => {
         if (product) {
           this.product.set(product);
+          
+          // Cargar imágenes: usar array si existe, sino usar imagen principal
+          const images = product.imagenes && product.imagenes.length > 0 
+            ? product.imagenes 
+            : [product.imagen];
+          this.productImages.set(images);
+          this.mainImageIndex.set(0);
+          
           // Seleccionar primera talla y color por defecto
           if (product.talla && product.talla.length > 0) {
             this.selectedSize.set(product.talla[0]);
@@ -147,6 +156,19 @@ export class ProductDetail implements OnInit {
 
   getTotalPrice(): number {
     return this.getPriceWithDiscount() * this.selectedQuantity();
+  }
+
+  // Cambiar imagen principal al hacer click en thumbnail
+  selectImage(index: number) {
+    if (index >= 0 && index < this.productImages().length) {
+      this.mainImageIndex.set(index);
+    }
+  }
+
+  // Obtener imagen principal actual
+  getMainImage(): string {
+    const images = this.productImages();
+    return images.length > 0 ? images[this.mainImageIndex()] : '';
   }
 
 

@@ -39,16 +39,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/register/register').then(m => m.Register),
     canActivate: [guestGuard]
   },
-  {
-    path: 'auth/forgot-password',
-    loadComponent: () => import('./features/auth/forgot-password/forgot-password').then(m => m.ForgotPassword),
-    canActivate: [guestGuard]
-  },
-  {
-    path: 'auth/email-verification',
-    loadComponent: () => import('./features/auth/email-verification/email-verification').then(m => m.EmailVerificationComponent),
-    canActivate: [guestGuard]
-  },
+{
+  path: 'auth/forgot-password',
+  loadComponent: () => import('./features/auth/forgot-password/forgot-password').then(m => m.ForgotPassword),
+  canActivate: [guestGuard]
+},
+{
+  path: 'auth/email-verification',
+  loadComponent: () => import('./features/auth/email-verification/email-verification').then(m => m.EmailVerificationComponent),
+  canActivate: [guestGuard]
+},
   {
     path: 'dashboard',
     loadComponent: () => import('./features/dashboard/dashboard').then(m => m.Dashboard),

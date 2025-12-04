@@ -147,9 +147,9 @@ export class AuthService {
       this.sessionService.startInactivityCountdown();
       this.sessionService.clearFailedAttempts(user.email);
       
-      console.log('✅ Sesión guardada correctamente');
+
     } catch (error) {
-      console.error('❌ Error guardando sesión:', error);
+      console.error('Error al guardar la sesión:', error);
       this.toastr.error('Error al guardar la sesión', 'Error');
     }
   }
@@ -167,7 +167,7 @@ export class AuthService {
     
     this.updateAuthState(false, null, null);
     
-    console.log('🔐 Sesión limpiada');
+
   }
 
   /**
@@ -378,7 +378,7 @@ export class AuthService {
       user: user,
       token: this.getToken()
     });
-    console.log('✅ Estado de autenticación actualizado en AuthService');
+
   }
 
   /**
@@ -412,7 +412,7 @@ export class AuthService {
    */
   setNavigationInProgress(inProgress: boolean): void {
     this.navigationInProgress = inProgress;
-    console.log(`🚀 Navegación en progreso: ${inProgress}`);
+
   }
 
   /**
@@ -488,3 +488,4 @@ export class AuthService {
     );
   }
 }
+

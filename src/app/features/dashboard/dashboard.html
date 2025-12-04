@@ -75,7 +75,7 @@
            class="p-4 hover:bg-[#F8F9FA] transition-colors cursor-pointer"
            [class.bg-[#F0F9FF]]="!notification.read">
         <div class="flex items-start gap-3">
-          <span class="material-symbols-outlined text-[#0367A6] font-variation-settings-wght-400" [innerHTML]="notification.icon"></span>
+          <span class="material-symbols-outlined text-[#0367A6] font-variation-settings-wght-400" {{ notification.icon }}></span>
           <div class="flex-1">
             <p class="text-sm text-[#202020] font-medium">{{ notification.title }}</p>
             <p class="text-xs text-[#666666] mt-1">{{ notification.message }}</p>

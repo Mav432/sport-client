@@ -37,7 +37,7 @@ export class GoogleAuthService {
    */
   initializeGoogle(clientId: string): void {
     if (!clientId) {
-      console.error('❌ Google Client ID no está configurado');
+      console.error('Google Client ID no está configurado');
       return;
     }
 
@@ -49,9 +49,9 @@ export class GoogleAuthService {
         itp_support: true
       });
 
-      console.log('✅ Google Identity Services inicializado correctamente');
+
     } catch (error) {
-      console.error('❌ Error inicializando Google:', error);
+      console.error('Error inicializando Google:', error);
     }
   }
 
@@ -72,9 +72,9 @@ export class GoogleAuthService {
         defaultOptions
       );
 
-      console.log('✅ Botón de Google renderizado en #' + elementId);
+
     } catch (error) {
-      console.error('❌ Error renderizando botón de Google:', error);
+      console.error('Error renderizando botón de Google:', error);
     }
   }
 
@@ -83,7 +83,7 @@ export class GoogleAuthService {
    */
   private handleGoogleResponse(response: any): void {
     if (!response.credential) {
-      console.error('❌ No se recibió credential de Google');
+      console.error('No se recibió credential de Google');
       this.toastr.error('Error en autenticación de Google', 'Error');
       return;
     }
@@ -98,7 +98,7 @@ export class GoogleAuthService {
   loginWithGoogle(idToken: string): void {
     // Establecer flag: autenticación en progreso
     this.authService.setAuthenticationInProgress(true);
-    console.log('🔄 Iniciando login con Google...');
+
 
     this.http.post<any>(
       `${this.API_URL}/users/auth/google-login`,
@@ -149,10 +149,10 @@ export class GoogleAuthService {
 
       // Redirigir según rol
       const dashboardRoute = getDashboardRoute(user.rol);
-      console.log('🚀 Redirigiendo a:', dashboardRoute);
+
       this.router.navigate([dashboardRoute]);
     } catch (error) {
-      console.error('❌ Error procesando respuesta de Google:', error);
+      console.error('Error procesando respuesta de Google:', error);
       this.toastr.error('Error al procesar autenticación', 'Error');
       // Limpiar flag en caso de error
       this.authService.setAuthenticationInProgress(false);
@@ -163,7 +163,7 @@ export class GoogleAuthService {
    * Manejar error de login
    */
   private handleLoginError(error: any): void {
-    console.error('❌ Error en login de Google:', error);
+    console.error('Error en login de Google:', error);
     
     const message = error.error?.message || 
                    error.error?.error || 
@@ -193,9 +193,9 @@ export class GoogleAuthService {
       // 🔑 IMPORTANTE: Actualizar estado en AuthService
       this.authService.updateCurrentUser(user);
 
-      console.log('✅ Sesión guardada correctamente');
+
     } catch (error) {
-      console.error('❌ Error guardando sesión:', error);
+      console.error('Error guardando sesión:', error);
       this.toastr.error('Error al guardar la sesión', 'Error');
     }
   }
@@ -209,7 +209,7 @@ export class GoogleAuthService {
       const decoded = atob(payload);
       return JSON.parse(decoded);
     } catch (error) {
-      console.error('❌ Error decodificando token:', error);
+      console.error('Error decodificando token:', error);
       return {};
     }
   }
@@ -233,7 +233,7 @@ export class GoogleAuthService {
       this.toastr.success('Sesión cerrada correctamente', 'Hasta pronto');
       this.router.navigate(['/home']);
     } catch (error) {
-      console.error('❌ Error en logout:', error);
+      console.error('Error en logout:', error);
       this.router.navigate(['/home']);
     }
   }

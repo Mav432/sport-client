@@ -23,11 +23,45 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    # Seguridad
-    X-Frame-Options = "DENY"
+    # Content Security Policy - Adaptado para Angular
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval';
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com data:;
+      img-src 'self' data: https: blob:;
+      connect-src 'self' https://back-sport.vercel.app;
+      frame-src 'self' https://accounts.google.com;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+      upgrade-insecure-requests;
+    """
+    
+    # Permissions Policy
+    Permissions-Policy = """
+      accelerometer=(), 
+      camera=(), 
+      geolocation=(), 
+      gyroscope=(), 
+      magnetometer=(), 
+      microphone=(), 
+      payment=(), 
+      usb=(), 
+      interest-cohort=()
+    """
+    
+    # Security Headers
     X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    
+    # Cross-Origin Policies
+    Cross-Origin-Embedder-Policy = "unsafe-none"
+    Cross-Origin-Opener-Policy = "same-origin-allow-popups"
+    Cross-Origin-Resource-Policy = "cross-origin"
     
     # Cache para assets
     Cache-Control = "public, max-age=3600"

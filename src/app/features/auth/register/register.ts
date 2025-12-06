@@ -3,6 +3,7 @@ import { CommonModule } from "@angular/common"
 import { FormsModule, ReactiveFormsModule } from "@angular/forms"
 import { RouterModule } from "@angular/router"
 import { AuthService } from '../../../core/services/auth.service';
+import { Router } from "@angular/router";
 import { GoogleAuthService } from '../../../core/services/google-auth.service';
 import { RegisterRequest, UserRole } from '../../../core/models/user.model';
 import { 
@@ -30,6 +31,7 @@ import { PasswordStrengthComponent } from '../../../shared/components/password-s
 })
 export class Register implements OnInit {
   private authService = inject(AuthService);
+  private router = inject(Router);
   googleAuthService = inject(GoogleAuthService);  // Público para acceder desde template
 
   userData: RegisterRequest = {
@@ -197,6 +199,10 @@ export class Register implements OnInit {
     this.authService.register(this.userData).subscribe({
       next: (response) => {
         this.isLoading = false;
+        // Navegar a la vista separada de verificación con query params
+      this.router.navigate(['/auth/verify-account'], {
+        queryParams: { email: this.userData.email, from: 'register' }
+      });
       },
       error: (error) => {
         this.isLoading = false;
@@ -292,6 +298,7 @@ export class Register implements OnInit {
   registerWithFacebook() {
     console.log('Facebook register - proximamente');
   }
+
 
   /**
    * Verificar si el botón está habilitado

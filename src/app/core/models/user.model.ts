@@ -23,6 +23,7 @@ export interface User {
 export interface LoginRequest {
   email: string;
   passw: string;
+  code: string
 }
 
 // Interface para Login Response

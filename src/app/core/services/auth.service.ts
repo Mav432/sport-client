@@ -420,7 +420,7 @@ export class AuthService {
   requestPasswordReset(email: string): Observable<any> {
     return this.http.post<any>(`${this.API_URL}/users/verify-user-email`, { email }).pipe(
       tap((response) => {
-        this.toastr.success('Código enviado a tu email. Válido por 5 minutos.', 'Código Enviado');
+        this.toastr.success('Código enviado a tu email', 'Código Enviado');
       }),
       catchError((error) => {
         console.error('Password reset request error:', error);

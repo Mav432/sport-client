@@ -91,6 +91,17 @@ export const routes: Routes = [
     loadComponent: () => import('./features/offers/offers').then((m) => m.Offers),
   },
   {
+  path: 'legal/terms',
+  loadComponent: () =>
+    import('./features/legal/terms/terms').then(m => m.TermsComponent),
+},
+{
+  path: 'legal/privacy',
+  loadComponent: () =>
+    import('./features/legal/privacy/privacy').then(m => m.PrivacyComponent),
+},
+
+  {
     path: '**',
     redirectTo: '/home',
   },

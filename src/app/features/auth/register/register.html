@@ -83,7 +83,8 @@
           <div class="flex items-start pt-2">
             <input id="terms" name="terms" type="checkbox" [(ngModel)]="acceptTerms" required class="h-5 w-5 text-[#0367A6] focus:ring-2 focus:ring-[#0367A6] border-[#A6A6A6] rounded mt-1 cursor-pointer">
             <label for="terms" class="ml-3 block text-sm text-[#666666] cursor-pointer">
-              Acepto los Términos y Condiciones <span class="text-red-600">*</span>
+              Acepto los <a routerLink="/legal/terms" class="text-[#0367A6] underline ml-1">Términos y Condiciones</a> y el <a routerLink="/legal/privacy" class="text-[#0367A6] underline ml-1">Aviso de Privacidad</a>.
+              <span class="text-red-600">*</span>
             </label>
           </div>
           <button type="submit" [disabled]="isSubmitDisabled()" class="w-full bg-gradient-to-r from-[#0367A6] to-[#035A91] hover:from-[#035A91] hover:to-[#024A7A] disabled:from-[#A6A6A6] disabled:to-[#A6A6A6] text-white py-3 px-6 rounded-xl font-semibold text-base transition-all duration-200 inline-flex items-center justify-center gap-3 shadow-lg hover:shadow-xl disabled:shadow-none transform hover:-translate-y-0.5 disabled:transform-none">

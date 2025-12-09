@@ -1,7 +1,7 @@
-import { AbstractControl, ValidationErrors, ValidatorFn, AsyncValidatorFn } from '@angular/forms';
+import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 /**
- * Validadores personalizados para seguridad y UX
+ * Validadores personalizados con seguridad ESTRICTA
  */
 
 // ============================================================================
@@ -9,103 +9,119 @@ import { AbstractControl, ValidationErrors, ValidatorFn, AsyncValidatorFn } from
 // ============================================================================
 export function emailFormatValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
-    if (!control.value) {
-      return null;
+    if (!control.value) return null;
+
+    const email = String(control.value).trim();
+    
+    // RFC 5322 estricto + límites
+    if (email.length < 5 || email.length > 254) {
+      return { invalidEmailFormat: { value: email } };
     }
 
-    // Regex RFC 5322 simplificado pero efectivo
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const valid = emailRegex.test(control.value);
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    
+    if (!emailRegex.test(email) || email.includes('..') || /[\x00-\x1F\x7F]/.test(email)) {
+      return { invalidEmailFormat: { value: email } };
+    }
 
-    return valid ? null : { invalidEmailFormat: { value: control.value } };
+    return null;
   };
 }
 
 // ============================================================================
-// PASSWORD VALIDATION - Complejidad
+// PASSWORD VALIDATION - ESTRICTO
 // ============================================================================
 export interface PasswordStrength {
-  score: number; // 0-4
+  score: number;
   feedback: string[];
   isValid: boolean;
 }
 
 export function passwordComplexityValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
-    if (!control.value) {
-      return null;
-    }
+    if (!control.value) return null;
 
-    const password = control.value;
+    const password = String(control.value);
     const errors: string[] = [];
 
-    // Longitud mínima 8
-    if (password.length < 8) {
-      errors.push('min-length');
+    // EXACTAMENTE 12+ caracteres
+    if (password.length < 12) errors.push('min-length');
+    if (password.length > 128) errors.push('max-length');
+
+    // OBLIGATORIO: Cada tipo de carácter
+    if (!/[A-Z]/.test(password)) errors.push('uppercase');
+    if (!/[a-z]/.test(password)) errors.push('lowercase');
+    if (!/[0-9]/.test(password)) errors.push('digit');
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) errors.push('special-char');
+
+    // NO PERMITIR: Caracteres consecutivos repetidos (aaa, 111, !!!)
+    if (/(.)\1{2,}/.test(password)) errors.push('consecutive-chars');
+
+    // NO PERMITIR: Secuencias de 3+ caracteres consecutivos (abc, 123, 789)
+    // Alfabéticas
+    if (/(?:abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i.test(password)) {
+      errors.push('sequential-chars');
+    }
+    // Numéricas (cualquier secuencia de 3+ dígitos consecutivos)
+    if (/(?:012|123|234|345|456|567|678|789|890|0123|1234|2345|3456|4567|5678|6789|7890|01234|12345|23456|34567|45678|56789|67890|012345|123456|234567|345678|456789|567890|0123456|1234567|2345678|3456789|4567890|01234567|12345678|23456789|34567890|012345678|123456789|234567890|0123456789)/.test(password)) {
+      errors.push('sequential-chars');
     }
 
-    // Al menos una mayúscula
-    if (!/[A-Z]/.test(password)) {
-      errors.push('uppercase');
-    }
+    // NO PERMITIR: Patrones repetitivos (abcabc)
+    if (/^(.{1,4})\1+$/.test(password)) errors.push('repetitive-pattern');
 
-    // Al menos una minúscula
-    if (!/[a-z]/.test(password)) {
-      errors.push('lowercase');
-    }
-
-    // Al menos un número
-    if (!/[0-9]/.test(password)) {
-      errors.push('digit');
-    }
-
-    // Al menos un carácter especial
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      errors.push('special-char');
+    // NO PERMITIR: Palabras comunes
+    if (/password|admin|user|login|welcome|qwerty|letmein|123456|abc123/i.test(password)) {
+      errors.push('common-password');
     }
 
     return errors.length > 0 ? { passwordComplexity: errors } : null;
   };
 }
 
-/**
- * Evalúa la fortaleza de una contraseña (sin validar, solo medir)
- */
 export function evaluatePasswordStrength(password: string): PasswordStrength {
-  let score = 0;
-  const feedback: string[] = [];
-
   if (!password) {
     return { score: 0, feedback: ['Ingresa una contraseña'], isValid: false };
   }
 
-  // Longitud
-  if (password.length >= 8) score++;
-  else feedback.push('Mínimo 8 caracteres');
+  const errors: string[] = [];
+  let score = 0;
 
-  if (password.length >= 12) score++;
-  else feedback.push('Considera 12+ caracteres');
+  if (password.length >= 12) score += 2;
+  else errors.push('Mínimo 12 caracteres');
 
-  // Complejidad
-  if (/[A-Z]/.test(password)) score++;
-  else feedback.push('Agrega mayúsculas');
+  if (/[A-Z]/.test(password)) score += 1;
+  else errors.push('Agrega mayúsculas');
 
-  if (/[a-z]/.test(password)) score++;
-  else feedback.push('Agrega minúsculas');
+  if (/[a-z]/.test(password)) score += 1;
+  else errors.push('Agrega minúsculas');
 
-  if (/[0-9]/.test(password)) score++;
-  else feedback.push('Agrega números');
+  if (/[0-9]/.test(password)) score += 1;
+  else errors.push('Agrega números');
 
-  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score++;
-  else feedback.push('Agrega caracteres especiales');
+  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) score += 1;
+  else errors.push('Agrega caracteres especiales');
 
-  // Normalizar score a 0-4
-  const normalizedScore = Math.min(Math.floor(score / 1.5), 4);
+  // Penalizar repeticiones y secuencias
+  if (/(.)\1{2,}/.test(password)) {
+    score = Math.max(0, score - 2);
+    errors.push('Sin caracteres consecutivos');
+  }
+
+  if (/(?:abc|bcd|123|234|345|456|567|678|789|012|0123|1234|2345|3456|4567|5678|6789|7890|12345|23456|34567|45678|56789|67890|123456|234567|345678|456789|567890|1234567|2345678|3456789|4567890|12345678|23456789|34567890|123456789|234567890|0123456789)/i.test(password)) {
+    score = Math.max(0, score - 1);
+    errors.push('Sin secuencias');
+  }
+
+  const isValid = score >= 6 && 
+                  password.length >= 12 && 
+                  !/(.)\1{2,}/.test(password) &&
+                  !/(?:abc|123|234)/i.test(password);
 
   return {
-    score: normalizedScore,
-    feedback: feedback.slice(0, 2), // Mostrar solo los 2 primeros consejos
-    isValid: normalizedScore >= 3 && password.length >= 8
+    score: Math.min(score, 4),
+    feedback: errors.slice(0, 2),
+    isValid
   };
 }
 
@@ -114,89 +130,97 @@ export function evaluatePasswordStrength(password: string): PasswordStrength {
 // ============================================================================
 export function nameValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
-    if (!control.value) {
-      return null;
+    if (!control.value) return null;
+
+    const name = String(control.value).trim();
+    
+    if (name.length < 2 || name.length > 50) {
+      return { invalidName: ['length'] };
     }
 
-    const name = control.value.trim();
-    const errors: string[] = [];
-
-    // Longitud: 2-50 caracteres
-    if (name.length < 2) {
-      errors.push('min-length');
-    }
-    if (name.length > 50) {
-      errors.push('max-length');
+    // Solo letras Unicode, espacios únicos, guiones
+    if (!/^[\p{L}\p{M}]+(?:[\s\-'][\p{L}\p{M}]+)*$/u.test(name)) {
+      return { invalidName: ['format'] };
     }
 
-    // Solo letras, espacios, guiones y acentos
-    const validNameRegex = /^[a-záéíóúàèìòùäëïöüñ\s\-']+$/i;
-    if (!validNameRegex.test(name)) {
-      errors.push('invalid-characters');
+    // Sin caracteres de control
+    if (/[\x00-\x1F\x7F-\x9F]/.test(name)) {
+      return { invalidName: ['control-chars'] };
     }
 
-    return errors.length > 0 ? { invalidName: errors } : null;
+    return null;
   };
 }
 
 // ============================================================================
-// XSS DETECTION - Detecta patrones peligrosos
+// XSS DETECTION - ESTRICTO
 // ============================================================================
 export function xssPatternDetector(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
-    if (!control.value) {
-      return null;
+    if (!control.value) return null;
+
+    const input = String(control.value);
+
+    if (input.length > 10000) {
+      return { xssDetected: { value: 'input-too-large' } };
     }
 
-    const input = control.value.toString();
     const xssPatterns = [
-      /<script[^>]*>[\s\S]*?<\/script>/gi,
-      /javascript:/gi,
-      /on\w+\s*=/gi, // onclick, onerror, etc.
-      /<iframe[^>]*>[\s\S]*?<\/iframe>/gi,
-      /<img[^>]*onerror/gi,
-      /<svg[^>]*onload/gi,
-      /eval\(/gi,
-      /expression\(/gi
+      /<script/gi, /<iframe/gi, /<embed/gi, /<object/gi,
+      /javascript:/gi, /on\w+\s*=/gi, /eval\(/gi, /expression\(/gi,
+      /<img[^>]*on/gi, /<svg[^>]*on/gi, /vbscript:/gi,
+      /data:text\/html/gi, /<(base|link|meta|style)/gi,
+      /<!--/, /<\?/, /<%/, /\${/, /&#x?[0-9a-f]+;/gi,
+      /\\[ux][0-9a-f]{2,4}/gi
     ];
 
-    const hasXSS = xssPatterns.some(pattern => pattern.test(input));
+    if (xssPatterns.some(p => p.test(input)) || /[\x00-\x1F\x7F]/.test(input)) {
+      return { xssDetected: { value: input.substring(0, 50) } };
+    }
 
-    return hasXSS ? { xssDetected: { value: control.value } } : null;
+    return null;
   };
 }
 
 // ============================================================================
-// SQL INJECTION DETECTION - Detecta patrones sospechosos
+// SQL INJECTION DETECTION - ESTRICTO
 // ============================================================================
 export function sqlInjectionDetector(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
-    if (!control.value) {
+    if (!control.value) return null;
+
+    const input = String(control.value);
+    
+    if (input.length > 10000) {
+      return { sqlInjectionDetected: { value: 'input-too-large' } };
+    }
+
+    // Permitir solo emails
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.trim())) {
       return null;
     }
 
-    const input = control.value.toString().toLowerCase();
     const sqlPatterns = [
-      /(\b(UNION|SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE)\b)/gi,
-      /(['";][\s\n]*(OR|AND)[\s\n]*['"];?)/gi,
-      /(--\/\*|\*\/)/gi, // Solo comentarios SQL sin #
-      /(\bOR\b.*=.*)/gi,
-      /(\b1\s*=\s*1\b)/gi,
-      /(;\s*(DROP|DELETE|TRUNCATE))/gi
+      /\b(UNION|SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|TRUNCATE)\b/gi,
+      /(['"][\s\n]*(OR|AND)[\s\n]*['"]?\s*=)/gi,
+      /(--|\/\*|\*\/|;.*DROP|;.*DELETE)/gi,
+      /\b(OR|AND)\b\s*['"0-9]+\s*=\s*['"0-9]+/gi,
+      /\b(1\s*=\s*1|0\s*=\s*0)\b/gi,
+      /\b(xp_|sp_|INFORMATION_SCHEMA|SLEEP|BENCHMARK|LOAD_FILE)\b/gi,
+      /\b0x[0-9a-f]+\b/gi,
+      /('--|";|';|"--|\|\||@@)/
     ];
 
-    // Pero permitir ciertos contextos seguros
-    const isEmail = input.includes('@');
-    if (isEmail) return null; // Los emails pueden tener caracteres especiales
+    if (sqlPatterns.some(p => p.test(input))) {
+      return { sqlInjectionDetected: { value: input.substring(0, 50) } };
+    }
 
-    const hasSQLInjection = sqlPatterns.some(pattern => pattern.test(input));
-
-    return hasSQLInjection ? { sqlInjectionDetected: { value: control.value } } : null;
+    return null;
   };
 }
 
 // ============================================================================
-// SECURE INPUT - Combina XSS + SQL detectors
+// SECURE INPUT - Combina validaciones
 // ============================================================================
 export function secureInputValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -217,14 +241,14 @@ export function secureInputValidator(): ValidatorFn {
 }
 
 // ============================================================================
-// MATCH VALIDATOR - Para confirmar contraseñas
+// PASSWORD MATCH VALIDATOR
 // ============================================================================
 export function passwordMatchValidator(passwordField: string, confirmField: string): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const password = control.get(passwordField);
     const confirm = control.get(confirmField);
 
-    if (!password || !confirm) {
+    if (!password || !confirm || !password.value || !confirm.value) {
       return null;
     }
 
@@ -233,82 +257,85 @@ export function passwordMatchValidator(passwordField: string, confirmField: stri
 }
 
 // ============================================================================
-// FUNCIONES AUXILIARES DE VALIDACIÓN (sin FormControl)
+// FUNCIONES AUXILIARES
 // ============================================================================
 
-/**
- * Valida formato de email directamente
- */
 export function validateEmail(email: string): boolean {
   if (!email) return false;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  const trimmed = email.trim();
+  if (trimmed.length < 5 || trimmed.length > 254) return false;
+  
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  
+  return emailRegex.test(trimmed) && !trimmed.includes('..') && !/[\x00-\x1F\x7F]/.test(trimmed);
 }
 
-/**
- * Valida complejidad de contraseña directamente
- */
 export function validatePasswordComplexity(password: string): boolean {
-  if (!password || password.length < 8) return false;
+  if (!password || password.length < 12 || password.length > 128) return false;
+  
+  // TODOS los tipos OBLIGATORIOS
   if (!/[A-Z]/.test(password)) return false;
   if (!/[a-z]/.test(password)) return false;
   if (!/[0-9]/.test(password)) return false;
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) return false;
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) return false;
+
+  // SIN consecutivos ni secuencias
+  if (/(.)\1{2,}/.test(password)) return false;
+  
+  // SIN secuencias alfabéticas
+  if (/(?:abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i.test(password)) return false;
+  
+  // SIN secuencias numéricas de 3+
+  if (/(?:012|123|234|345|456|567|678|789|890|0123|1234|2345|3456|4567|5678|6789|7890|01234|12345|23456|34567|45678|56789|67890|012345|123456|234567|345678|456789|567890|0123456|1234567|2345678|3456789|4567890|01234567|12345678|23456789|34567890|012345678|123456789|234567890|0123456789)/.test(password)) return false;
+  
+  if (/^(.{1,4})\1+$/.test(password)) return false;
+  if (/password|admin|qwerty|123456/i.test(password)) return false;
+
   return true;
 }
 
-/**
- * Valida nombre directamente
- */
 export function validateName(name: string): boolean {
   if (!name) return false;
   const trimmed = name.trim();
+  
   if (trimmed.length < 2 || trimmed.length > 50) return false;
-  const validNameRegex = /^[a-záéíóúàèìòùäëïöüñ\s\-']+$/i;
-  return validNameRegex.test(trimmed);
+  if (!/^[\p{L}\p{M}]+(?:[\s\-'][\p{L}\p{M}]+)*$/u.test(trimmed)) return false;
+  if (/[\x00-\x1F\x7F-\x9F]/.test(trimmed)) return false;
+
+  return true;
 }
 
-/**
- * Detecta XSS patterns directamente
- */
 export function detectXSS(input: string): boolean {
-  if (!input) return false;
+  if (!input || input.length > 10000) return true;
+
   const xssPatterns = [
-    /<script[^>]*>[\s\S]*?<\/script>/gi,
-    /javascript:/gi,
-    /on\w+\s*=/gi,
-    /<iframe[^>]*>[\s\S]*?<\/iframe>/gi,
-    /<img[^>]*onerror/gi,
-    /<svg[^>]*onload/gi,
-    /eval\(/gi,
-    /expression\(/gi
+    /<script/gi, /<iframe/gi, /<embed/gi, /javascript:/gi,
+    /on\w+\s*=/gi, /eval\(/gi, /<img[^>]*on/gi, /<svg[^>]*on/gi,
+    /vbscript:/gi, /data:text\/html/gi, /<(base|link|meta|style)/gi,
+    /<!--/, /<\?/, /<%/, /\${/, /&#x?[0-9a-f]+;/gi
   ];
-  return xssPatterns.some(pattern => pattern.test(input));
+
+  return xssPatterns.some(p => p.test(input)) || /[\x00-\x1F\x7F]/.test(input);
 }
 
-/**
- * Detecta SQL Injection patterns directamente
- */
 export function detectSQLInjection(input: string): boolean {
-  if (!input) return false;
-  const isEmail = input.includes('@');
-  if (isEmail) return false;
+  if (!input || input.length > 10000) return true;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.trim())) return false;
 
   const sqlPatterns = [
-    /(\b(UNION|SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE)\b)/gi,
-    /(['";][\s\n]*(OR|AND)[\s\n]*['"];?)/gi,
-    /(--\/\*|\*\/)/gi, // Solo comentarios SQL sin #
-    /(\bOR\b.*=.*)/gi,
-    /(\b1\s*=\s*1\b)/gi,
-    /(;\s*(DROP|DELETE|TRUNCATE))/gi
+    /\b(UNION|SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|TRUNCATE)\b/gi,
+    /(['"][\s\n]*(OR|AND)[\s\n]*['"]?\s*=)/gi,
+    /(--|\/\*|\*\/|;.*DROP)/gi,
+    /\b(OR|AND)\b\s*['"0-9]+\s*=\s*['"0-9]+/gi,
+    /\b(1\s*=\s*1|xp_|sp_|INFORMATION_SCHEMA)\b/gi,
+    /('--|";|';\|\||@@|0x[0-9a-f]+)/i
   ];
-  return sqlPatterns.some(pattern => pattern.test(input));
+
+  return sqlPatterns.some(p => p.test(input));
 }
 
-/**
- * Valida entrada segura (sin XSS ni SQL injection)
- */
 export function isSecureInput(input: string): boolean {
   if (!input) return true;
+  if (input.length > 10000) return false;
   return !detectXSS(input) && !detectSQLInjection(input);
 }

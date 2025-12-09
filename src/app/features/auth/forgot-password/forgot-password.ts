@@ -1,4 +1,4 @@
-import { Component, inject, signal } from "@angular/core";
+import { Component, inject, signal, OnDestroy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { RouterModule, Router } from "@angular/router";
@@ -9,6 +9,24 @@ import { PasswordStrengthComponent } from '../../../shared/components/password-s
 
 type ForgotPasswordStep = 'email' | 'verify' | 'reset';
 
+// ============================================================================
+// RATE LIMITING CONFIGURATION
+// ============================================================================
+interface RateLimitState {
+  attempts: number;
+  firstAttempt: number;
+  lockedUntil: number | null;
+  lastAttemptTime: number;
+}
+
+const RATE_LIMIT_CONFIG = {
+  maxAttempts: 3,           // Máximo 3 intentos
+  timeWindow: 15 * 60000,   // Ventana de 15 minutos
+  lockDuration: 30 * 60000, // Bloqueo de 30 minutos
+  cooldownBase: 60,         // Cooldown base de 60 segundos
+  minTimeBetweenAttempts: 5000, // Mínimo 5 segundos entre intentos
+};
+
 @Component({
   selector: "app-forgot-password",
   standalone: true,
@@ -16,12 +34,13 @@ type ForgotPasswordStep = 'email' | 'verify' | 'reset';
   templateUrl: "./forgot-password.html",
   styleUrl: "./forgot-password.css"
 })
-export class ForgotPassword {
+export class ForgotPassword implements OnDestroy {
   private authService = inject(AuthService);
   private toastr = inject(ToastrService);
   private router = inject(Router);
-  private codeExpiryInterval: any; // Para limpiar el intervalo
-  private resendCooldownInterval: any; // Para el cooldown de reenvío
+  private codeExpiryInterval: any;
+  private resendCooldownInterval: any;
+  private lockCountdownInterval: any;
 
   // Estados
   currentStep = signal<ForgotPasswordStep>('email');
@@ -34,9 +53,9 @@ export class ForgotPassword {
   // Paso 2: Verificación de código
   recoveryCode = signal<string>('');
   codeError = signal<string>('');
-  codeExpiry = signal<number>(0); // Tiempo restante en segundos (24h del backend)
-  canResendCode = signal<boolean>(true); // Permite o bloquea reenvío
-  resendCooldown = signal<number>(0); // Countdown 60s entre reenvíos
+  codeExpiry = signal<number>(0);
+  canResendCode = signal<boolean>(true);
+  resendCooldown = signal<number>(0);
   
   // Paso 3: Nueva contraseña
   newPassword = signal<string>('');
@@ -46,6 +65,18 @@ export class ForgotPassword {
   passwordError = signal<string>('');
   secureError = signal<string>('');
   passwordStrength = signal<PasswordStrength | null>(null);
+
+  // Rate Limiting
+  isRateLimited = signal<boolean>(false);
+  rateLimitMessage = signal<string>('');
+  remainingAttempts = signal<number>(RATE_LIMIT_CONFIG.maxAttempts);
+  lockTimeRemaining = signal<string>('');
+
+  private rateLimitKey = '';
+
+  ngOnDestroy(): void {
+    this.cleanupIntervals();
+  }
 
   /**
    * Paso 1: Solicitar código de recuperación
@@ -58,6 +89,21 @@ export class ForgotPassword {
       return;
     }
 
+    // Configurar key de rate limit basada en email
+    this.rateLimitKey = `rate_limit_forgot_${this.email()}`;
+
+    // Verificar rate limit
+    if (!this.checkRateLimit()) {
+      this.emailError.set(this.rateLimitMessage());
+      return;
+    }
+
+    // Registrar intento
+    if (!this.recordAttempt()) {
+      this.emailError.set(this.rateLimitMessage());
+      return;
+    }
+
     this.isLoading.set(true);
 
     this.authService.requestPasswordReset(this.email()).subscribe({
@@ -66,9 +112,14 @@ export class ForgotPassword {
         this.currentStep.set('verify');
         this.recoveryCode.set('');
         this.codeError.set('');
-        this.canResendCode.set(false); // Bloquea reenvío inicial
+        this.canResendCode.set(false);
         this.startCodeExpiry();
         this.startResendCooldown();
+        
+        // Mostrar intentos restantes
+        if (this.remainingAttempts() < RATE_LIMIT_CONFIG.maxAttempts) {
+          this.toastr.info(`Intentos restantes: ${this.remainingAttempts()}`, 'Información');
+        }
       },
       error: (err) => {
         this.isLoading.set(false);
@@ -78,59 +129,44 @@ export class ForgotPassword {
   }
 
   /**
-   * Iniciar timer de expiración del código (24 horas desde backend)
-   * Mostramos "Válido por 24 horas" estático, sin countdown real
-   */
-  private startCodeExpiry() {
-    // Timer de 24h para referencia (86400 segundos)
-    // Pero NO mostramos countdown, solo "Válido por 24 horas"
-    let seconds = 86400; // 24 horas
-    this.codeExpiry.set(seconds);
-
-    this.codeExpiryInterval = setInterval(() => {
-      seconds--;
-      this.codeExpiry.set(seconds);
-
-      // Si llega a 0 (muy poco probable en práctica, usuario vería mensaje del backend)
-      if (seconds <= 0) {
-        clearInterval(this.codeExpiryInterval);
-      }
-    }, 1000);
-  }
-
-  /**
-   * Cooldown de 60 segundos para reenvío de código
-   */
-  private startResendCooldown() {
-    let seconds = 60;
-    this.resendCooldown.set(seconds);
-    this.canResendCode.set(false);
-
-    this.resendCooldownInterval = setInterval(() => {
-      seconds--;
-      this.resendCooldown.set(seconds);
-
-      if (seconds <= 0) {
-        clearInterval(this.resendCooldownInterval);
-        this.canResendCode.set(true);
-        this.resendCooldown.set(0);
-      }
-    }, 1000);
-  }
-
-  /**
-   * Reenviar código (sin cambiar de paso)
+   * Reenviar código con rate limiting
    */
   resendCode() {
+    if (this.isRateLimited()) {
+      this.codeError.set(this.rateLimitMessage());
+      return;
+    }
+
+    if (!this.canResendCode()) {
+      this.codeError.set(`Espera ${this.resendCooldown()}s para reenviar`);
+      return;
+    }
+
+    // Verificar rate limit antes de reenviar
+    if (!this.checkRateLimit()) {
+      this.codeError.set(this.rateLimitMessage());
+      return;
+    }
+
+    // Registrar intento
+    if (!this.recordAttempt()) {
+      this.codeError.set(this.rateLimitMessage());
+      return;
+    }
+
     this.isLoading.set(true);
 
     this.authService.requestPasswordReset(this.email()).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.toastr.success('Código reenviado a tu email', 'Éxito');
+        this.toastr.success(`Código reenviado. ${this.remainingAttempts()} intentos restantes`, 'Éxito');
         this.recoveryCode.set('');
         this.codeError.set('');
-        this.startResendCooldown();
+        
+        // Cooldown progresivo
+        const state = this.getRateLimitState();
+        const cooldown = this.calculateCooldown(state.attempts);
+        this.startResendCooldown(cooldown);
       },
       error: (err) => {
         this.isLoading.set(false);
@@ -155,16 +191,17 @@ export class ForgotPassword {
     this.authService.verifyRecoveryCode(this.email(), this.recoveryCode()).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.cleanupIntervals(); // Limpiar intervals al cambiar de paso
+        this.cleanupIntervals();
         this.currentStep.set('reset');
+        
+        // Limpiar rate limit tras éxito
+        this.clearRateLimit();
       },
       error: (err) => {
         this.isLoading.set(false);
-        // Manejo de 3 intentos agotados desde backend
         const message = err?.error?.message || 'Código inválido';
         if (message.includes('intentos') || message.includes('agotado') || message.includes('expirado')) {
           this.codeError.set(message);
-          // Dar opción de reenviar o volver
           this.toastr.error(message, 'Código Inválido');
         } else {
           this.codeError.set(message);
@@ -180,19 +217,16 @@ export class ForgotPassword {
     this.passwordError.set('');
     this.secureError.set('');
 
-    // Validar contraseña
     if (!this.newPassword() || !validatePasswordComplexity(this.newPassword())) {
       this.passwordError.set('La contraseña no cumple con los requisitos de seguridad');
       return;
     }
 
-    // Validar entrada segura
     if (!isSecureInput(this.newPassword())) {
       this.secureError.set('La contraseña contiene caracteres no permitidos');
       return;
     }
 
-    // Validar coincidencia
     if (this.newPassword() !== this.confirmPassword()) {
       this.passwordError.set('Las contraseñas no coinciden');
       return;
@@ -204,6 +238,7 @@ export class ForgotPassword {
       next: () => {
         this.isLoading.set(false);
         this.cleanupIntervals();
+        this.clearRateLimit(); // Limpiar tras éxito
         this.toastr.success('Contraseña restablecida exitosamente', 'Éxito');
         this.router.navigate(['/auth/login']);
       },
@@ -214,9 +249,221 @@ export class ForgotPassword {
     });
   }
 
+  // ============================================================================
+  // RATE LIMITING LOGIC
+  // ============================================================================
+
   /**
-   * Validar contraseña en tiempo real
+   * Verifica si el usuario puede hacer una solicitud
    */
+  private checkRateLimit(): boolean {
+    const state = this.getRateLimitState();
+    const now = Date.now();
+
+    // Verificar si está bloqueado
+    if (state.lockedUntil && now < state.lockedUntil) {
+      this.isRateLimited.set(true);
+      this.startLockCountdown(state.lockedUntil);
+      return false;
+    }
+
+    // Limpiar bloqueo expirado
+    if (state.lockedUntil && now >= state.lockedUntil) {
+      this.clearRateLimit();
+      return true;
+    }
+
+    // Verificar ventana de tiempo
+    if (state.firstAttempt && now - state.firstAttempt > RATE_LIMIT_CONFIG.timeWindow) {
+      this.clearRateLimit();
+      return true;
+    }
+
+    // Verificar tiempo mínimo entre intentos (prevenir spam)
+    if (state.lastAttemptTime && now - state.lastAttemptTime < RATE_LIMIT_CONFIG.minTimeBetweenAttempts) {
+      this.rateLimitMessage.set('Espera unos segundos antes de intentar nuevamente');
+      return false;
+    }
+
+    // Calcular intentos restantes
+    this.remainingAttempts.set(Math.max(0, RATE_LIMIT_CONFIG.maxAttempts - state.attempts));
+    this.isRateLimited.set(false);
+    
+    return true;
+  }
+
+  /**
+   * Registra un intento y verifica límites
+   */
+  private recordAttempt(): boolean {
+    const state = this.getRateLimitState();
+    const now = Date.now();
+
+    // Inicializar primer intento
+    if (!state.firstAttempt) {
+      state.firstAttempt = now;
+      state.attempts = 0;
+    }
+
+    // Verificar si la ventana expiró
+    if (now - state.firstAttempt > RATE_LIMIT_CONFIG.timeWindow) {
+      state.firstAttempt = now;
+      state.attempts = 0;
+      state.lockedUntil = null;
+    }
+
+    // Incrementar intentos
+    state.attempts++;
+    state.lastAttemptTime = now;
+
+    // Verificar si alcanzó el límite
+    if (state.attempts >= RATE_LIMIT_CONFIG.maxAttempts) {
+      state.lockedUntil = now + RATE_LIMIT_CONFIG.lockDuration;
+      this.saveRateLimitState(state);
+      
+      this.isRateLimited.set(true);
+      const lockMinutes = Math.ceil(RATE_LIMIT_CONFIG.lockDuration / 60000);
+      this.rateLimitMessage.set(`Has excedido el límite de intentos. Bloqueado por ${lockMinutes} minutos.`);
+      this.startLockCountdown(state.lockedUntil);
+      
+      this.toastr.error(this.rateLimitMessage(), 'Cuenta Bloqueada', { timeOut: 5000 });
+      return false;
+    }
+
+    // Guardar estado
+    this.saveRateLimitState(state);
+    this.remainingAttempts.set(RATE_LIMIT_CONFIG.maxAttempts - state.attempts);
+    
+    return true;
+  }
+
+  /**
+   * Calcula cooldown progresivo
+   */
+  private calculateCooldown(attempts: number): number {
+    return RATE_LIMIT_CONFIG.cooldownBase * Math.min(attempts, 3);
+  }
+
+  /**
+   * Obtiene estado de rate limit
+   */
+  private getRateLimitState(): RateLimitState {
+    try {
+      const stored = localStorage.getItem(this.rateLimitKey);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error('Error parsing rate limit state:', e);
+    }
+    
+    return {
+      attempts: 0,
+      firstAttempt: 0,
+      lockedUntil: null,
+      lastAttemptTime: 0,
+    };
+  }
+
+  /**
+   * Guarda estado de rate limit
+   */
+  private saveRateLimitState(state: RateLimitState): void {
+    try {
+      localStorage.setItem(this.rateLimitKey, JSON.stringify(state));
+    } catch (e) {
+      console.error('Error saving rate limit state:', e);
+    }
+  }
+
+  /**
+   * Limpia rate limit
+   */
+  private clearRateLimit(): void {
+    try {
+      if (this.rateLimitKey) {
+        localStorage.removeItem(this.rateLimitKey);
+      }
+    } catch (e) {
+      console.error('Error clearing rate limit:', e);
+    }
+    
+    this.isRateLimited.set(false);
+    this.remainingAttempts.set(RATE_LIMIT_CONFIG.maxAttempts);
+    this.rateLimitMessage.set('');
+    this.lockTimeRemaining.set('');
+    
+    if (this.lockCountdownInterval) {
+      clearInterval(this.lockCountdownInterval);
+      this.lockCountdownInterval = null;
+    }
+  }
+
+  /**
+   * Inicia countdown del bloqueo
+   */
+  private startLockCountdown(lockUntil: number): void {
+    if (this.lockCountdownInterval) {
+      clearInterval(this.lockCountdownInterval);
+    }
+    
+    const updateCountdown = () => {
+      const now = Date.now();
+      const remaining = lockUntil - now;
+      
+      if (remaining <= 0) {
+        this.isRateLimited.set(false);
+        this.rateLimitMessage.set('');
+        this.lockTimeRemaining.set('');
+        this.clearRateLimit();
+        return;
+      }
+      
+      const minutes = Math.floor(remaining / 60000);
+      const seconds = Math.floor((remaining % 60000) / 1000);
+      this.lockTimeRemaining.set(`${minutes}m ${seconds}s`);
+      this.rateLimitMessage.set(`Cuenta bloqueada. Espera ${minutes}m ${seconds}s`);
+    };
+    
+    updateCountdown();
+    this.lockCountdownInterval = setInterval(updateCountdown, 1000);
+  }
+
+  // ============================================================================
+  // EXISTING METHODS
+  // ============================================================================
+
+  private startCodeExpiry() {
+    let seconds = 86400; // 24 horas
+    this.codeExpiry.set(seconds);
+
+    this.codeExpiryInterval = setInterval(() => {
+      seconds--;
+      this.codeExpiry.set(seconds);
+
+      if (seconds <= 0) {
+        clearInterval(this.codeExpiryInterval);
+      }
+    }, 1000);
+  }
+
+  private startResendCooldown(cooldownSeconds?: number) {
+    let seconds = cooldownSeconds || 60;
+    this.resendCooldown.set(seconds);
+    this.canResendCode.set(false);
+
+    this.resendCooldownInterval = setInterval(() => {
+      seconds--;
+      this.resendCooldown.set(seconds);
+
+      if (seconds <= 0) {
+        clearInterval(this.resendCooldownInterval);
+        this.canResendCode.set(true);
+        this.resendCooldown.set(0);
+      }
+    }, 1000);
+  }
+
   onPasswordChange(password: string) {
     this.newPassword.set(password);
 
@@ -236,29 +483,20 @@ export class ForgotPassword {
     }
   }
 
-  /**
-   * Formatear tiempo restante (MM:SS)
-   */
   formatTimeRemaining(seconds: number): string {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
-  /**
-   * Limpiar todos los intervals
-   */
   private cleanupIntervals() {
     if (this.codeExpiryInterval) clearInterval(this.codeExpiryInterval);
     if (this.resendCooldownInterval) clearInterval(this.resendCooldownInterval);
+    if (this.lockCountdownInterval) clearInterval(this.lockCountdownInterval);
   }
 
-  /**
-   * Volver al paso anterior - LIMPIA ESTADO COMPLETAMENTE
-   */
   goBack() {
     if (this.currentStep() === 'verify') {
-      // Volver a email: limpia TODO del paso 2
       this.cleanupIntervals();
       this.currentStep.set('email');
       this.recoveryCode.set('');
@@ -267,7 +505,6 @@ export class ForgotPassword {
       this.canResendCode.set(true);
       this.resendCooldown.set(0);
     } else if (this.currentStep() === 'reset') {
-      // Volver a verify: limpia solo contraseña
       this.currentStep.set('verify');
       this.newPassword.set('');
       this.confirmPassword.set('');
@@ -277,10 +514,8 @@ export class ForgotPassword {
     }
   }
 
-  /**
-   * Ir a login
-   */
   goToLogin() {
+    this.cleanupIntervals();
     this.router.navigate(['/auth/login']);
   }
 }

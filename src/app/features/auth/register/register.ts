@@ -312,4 +312,13 @@ export class Register implements OnInit {
            !this.userData.passw || 
            !this.passwordsMatch();
   }
+  /**
+ * Prevenir espacios en contraseñas
+ */
+preventSpace(event: KeyboardEvent): void {
+  if (event.key === ' ' || event.code === 'Space') {
+    event.preventDefault();
+  }
 }
+}
+

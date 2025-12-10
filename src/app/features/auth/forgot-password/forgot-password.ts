@@ -518,4 +518,12 @@ export class ForgotPassword implements OnDestroy {
     this.cleanupIntervals();
     this.router.navigate(['/auth/login']);
   }
+  /**
+ * Prevenir espacios en contraseñas
+ */
+preventSpace(event: KeyboardEvent): void {
+  if (event.key === ' ' || event.code === 'Space') {
+    event.preventDefault();
+  }
+}
 }

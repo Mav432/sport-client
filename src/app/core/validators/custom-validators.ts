@@ -5,6 +5,27 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
  */
 
 // ============================================================================
+// CONFIGURACIÓN GLOBAL DE VALIDADORES
+// ============================================================================
+export const VALIDATOR_CONFIG = {
+  password: {
+    minLength: 12,  // Modificable: longitud mínima de contraseña
+    maxLength: 128, // Modificable: longitud máxima de contraseña
+  },
+  email: {
+    minLength: 5,
+    maxLength: 254,
+  },
+  name: {
+    minLength: 2,
+    maxLength: 50,
+  },
+  input: {
+    maxLength: 10000,
+  }
+};
+
+// ============================================================================
 // EMAIL VALIDATION
 // ============================================================================
 export function emailFormatValidator(): ValidatorFn {
@@ -14,7 +35,7 @@ export function emailFormatValidator(): ValidatorFn {
     const email = String(control.value).trim();
     
     // RFC 5322 estricto + límites
-    if (email.length < 5 || email.length > 254) {
+    if (email.length < VALIDATOR_CONFIG.email.minLength || email.length > VALIDATOR_CONFIG.email.maxLength) {
       return { invalidEmailFormat: { value: email } };
     }
 
@@ -44,15 +65,18 @@ export function passwordComplexityValidator(): ValidatorFn {
     const password = String(control.value);
     const errors: string[] = [];
 
-    // EXACTAMENTE 12+ caracteres
-    if (password.length < 12) errors.push('min-length');
-    if (password.length > 128) errors.push('max-length');
+    // EXACTAMENTE minLength+ caracteres (CONFIGURABLE)
+    if (password.length < VALIDATOR_CONFIG.password.minLength) errors.push('min-length');
+    if (password.length > VALIDATOR_CONFIG.password.maxLength) errors.push('max-length');
 
     // OBLIGATORIO: Cada tipo de carácter
     if (!/[A-Z]/.test(password)) errors.push('uppercase');
     if (!/[a-z]/.test(password)) errors.push('lowercase');
     if (!/[0-9]/.test(password)) errors.push('digit');
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) errors.push('special-char');
+
+    // NO PERMITIR: Espacios en blanco
+    if (/\s/.test(password)) errors.push('no-spaces');
 
     // NO PERMITIR: Caracteres consecutivos repetidos (aaa, 111, !!!)
     if (/(.)\1{2,}/.test(password)) errors.push('consecutive-chars');
@@ -87,8 +111,8 @@ export function evaluatePasswordStrength(password: string): PasswordStrength {
   const errors: string[] = [];
   let score = 0;
 
-  if (password.length >= 12) score += 2;
-  else errors.push('Mínimo 12 caracteres');
+  if (password.length >= VALIDATOR_CONFIG.password.minLength) score += 2;
+  else errors.push(`Mínimo ${VALIDATOR_CONFIG.password.minLength} caracteres`);
 
   if (/[A-Z]/.test(password)) score += 1;
   else errors.push('Agrega mayúsculas');
@@ -114,7 +138,7 @@ export function evaluatePasswordStrength(password: string): PasswordStrength {
   }
 
   const isValid = score >= 6 && 
-                  password.length >= 12 && 
+                  password.length >= VALIDATOR_CONFIG.password.minLength && 
                   !/(.)\1{2,}/.test(password) &&
                   !/(?:abc|123|234)/i.test(password);
 
@@ -134,7 +158,7 @@ export function nameValidator(): ValidatorFn {
 
     const name = String(control.value).trim();
     
-    if (name.length < 2 || name.length > 50) {
+    if (name.length < VALIDATOR_CONFIG.name.minLength || name.length > VALIDATOR_CONFIG.name.maxLength) {
       return { invalidName: ['length'] };
     }
 
@@ -161,7 +185,7 @@ export function xssPatternDetector(): ValidatorFn {
 
     const input = String(control.value);
 
-    if (input.length > 10000) {
+    if (input.length > VALIDATOR_CONFIG.input.maxLength) {
       return { xssDetected: { value: 'input-too-large' } };
     }
 
@@ -191,7 +215,7 @@ export function sqlInjectionDetector(): ValidatorFn {
 
     const input = String(control.value);
     
-    if (input.length > 10000) {
+    if (input.length > VALIDATOR_CONFIG.input.maxLength) {
       return { sqlInjectionDetected: { value: 'input-too-large' } };
     }
 
@@ -263,7 +287,7 @@ export function passwordMatchValidator(passwordField: string, confirmField: stri
 export function validateEmail(email: string): boolean {
   if (!email) return false;
   const trimmed = email.trim();
-  if (trimmed.length < 5 || trimmed.length > 254) return false;
+  if (trimmed.length < VALIDATOR_CONFIG.email.minLength || trimmed.length > VALIDATOR_CONFIG.email.maxLength) return false;
   
   const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   
@@ -271,13 +295,16 @@ export function validateEmail(email: string): boolean {
 }
 
 export function validatePasswordComplexity(password: string): boolean {
-  if (!password || password.length < 12 || password.length > 128) return false;
+  if (!password || password.length < VALIDATOR_CONFIG.password.minLength || password.length > VALIDATOR_CONFIG.password.maxLength) return false;
   
   // TODOS los tipos OBLIGATORIOS
   if (!/[A-Z]/.test(password)) return false;
   if (!/[a-z]/.test(password)) return false;
   if (!/[0-9]/.test(password)) return false;
   if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) return false;
+
+  // SIN espacios
+  if (/\s/.test(password)) return false;
 
   // SIN consecutivos ni secuencias
   if (/(.)\1{2,}/.test(password)) return false;
@@ -298,7 +325,7 @@ export function validateName(name: string): boolean {
   if (!name) return false;
   const trimmed = name.trim();
   
-  if (trimmed.length < 2 || trimmed.length > 50) return false;
+  if (trimmed.length < VALIDATOR_CONFIG.name.minLength || trimmed.length > VALIDATOR_CONFIG.name.maxLength) return false;
   if (!/^[\p{L}\p{M}]+(?:[\s\-'][\p{L}\p{M}]+)*$/u.test(trimmed)) return false;
   if (/[\x00-\x1F\x7F-\x9F]/.test(trimmed)) return false;
 
@@ -306,7 +333,7 @@ export function validateName(name: string): boolean {
 }
 
 export function detectXSS(input: string): boolean {
-  if (!input || input.length > 10000) return true;
+  if (!input || input.length > VALIDATOR_CONFIG.input.maxLength) return true;
 
   const xssPatterns = [
     /<script/gi, /<iframe/gi, /<embed/gi, /javascript:/gi,
@@ -319,7 +346,7 @@ export function detectXSS(input: string): boolean {
 }
 
 export function detectSQLInjection(input: string): boolean {
-  if (!input || input.length > 10000) return true;
+  if (!input || input.length > VALIDATOR_CONFIG.input.maxLength) return true;
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.trim())) return false;
 
   const sqlPatterns = [
@@ -336,6 +363,6 @@ export function detectSQLInjection(input: string): boolean {
 
 export function isSecureInput(input: string): boolean {
   if (!input) return true;
-  if (input.length > 10000) return false;
+  if (input.length > VALIDATOR_CONFIG.input.maxLength) return false;
   return !detectXSS(input) && !detectSQLInjection(input);
 }

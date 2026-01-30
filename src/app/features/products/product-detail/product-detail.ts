@@ -45,10 +45,13 @@ export class ProductDetail implements OnInit {
 
   ngOnInit() {
     this.route.params.subscribe(params => {
-      const productId = +params['id'];
-      if (productId) {
-        this.loadProduct(productId);
+      const productId = Number(params['id']);
+      if (!Number.isFinite(productId) || productId <= 0) {
+        this.toastr.error('ID de producto inválido', 'Solicitud incorrecta');
+        this.router.navigate(['/error/400']);
+        return;
       }
+      this.loadProduct(productId);
     });
   }
 
@@ -74,14 +77,14 @@ export class ProductDetail implements OnInit {
             this.selectedColor.set(product.color[0]);
           }
         } else {
-          this.toastr.error('Producto no encontrado', 'Error');
-          this.router.navigate(['/products']);
+          this.toastr.error('Producto no encontrado', 'Error 404');
+          this.router.navigate(['/error/404']);
         }
         this.isLoading.set(false);
       },
       error: () => {
-        this.toastr.error('Error al cargar el producto', 'Error');
-        this.router.navigate(['/products']);
+        this.toastr.error('Error al cargar el producto', 'Error 500');
+        this.router.navigate(['/error/500']);
         this.isLoading.set(false);
       }
     });

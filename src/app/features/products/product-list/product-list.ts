@@ -1,10 +1,11 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, ActivatedRoute } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../../core/services/product.service';
 import { Product, Category, ProductFilters } from '../../../core/models/product.model';
 import { Breadcrumbs, BreadcrumbItem } from '../../../shared/components/breadcrumbs/breadcrumbs';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-product-list',
@@ -16,6 +17,8 @@ import { Breadcrumbs, BreadcrumbItem } from '../../../shared/components/breadcru
 export class ProductList implements OnInit {
   private productService = inject(ProductService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private toastr = inject(ToastrService);
 
   // Estado de la búsqueda
   searchTerm = signal<string>('');
@@ -65,14 +68,82 @@ export class ProductList implements OnInit {
   ngOnInit() {
     // Suscribirse a cambios en los query parameters
     this.route.queryParams.subscribe(params => {
-      if (params['search']) {
-        this.searchTerm.set(params['search']);
-      }
-      if (params['category']) {
-        this.selectedCategory.set(params['category']);
+      if (!this.parseQueryParams(params)) {
+        // Si algún parámetro es inválido, redirigir a error 400
+        this.router.navigate(['/error/400']);
+        return;
       }
       this.loadInitialData();
     });
+  }
+
+  /**
+   * Valida y aplica parámetros de query; retorna false si alguno es inválido.
+   */
+  private parseQueryParams(params: Record<string, any>): boolean {
+    if (params['search']) {
+      this.searchTerm.set(String(params['search']));
+    }
+
+    if (params['category']) {
+      this.selectedCategory.set(String(params['category']));
+    }
+
+    if (params['brand']) {
+      this.selectedBrand.set(String(params['brand']));
+    }
+
+    const min = params['minPrice'];
+    const max = params['maxPrice'];
+
+    const toNumber = (v: any) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    };
+
+    const minParsed = min !== undefined ? toNumber(min) : null;
+    const maxParsed = max !== undefined ? toNumber(max) : null;
+
+    if (min !== undefined && minParsed === null) {
+      this.toastr.error('minPrice debe ser numérico', 'Parámetro inválido');
+      return false;
+    }
+
+    if (max !== undefined && maxParsed === null) {
+      this.toastr.error('maxPrice debe ser numérico', 'Parámetro inválido');
+      return false;
+    }
+
+    if (minParsed !== null && maxParsed !== null && minParsed > maxParsed) {
+      this.toastr.error('minPrice no puede ser mayor que maxPrice', 'Parámetro inválido');
+      return false;
+    }
+
+    if (minParsed !== null) this.minPrice.set(minParsed);
+    if (maxParsed !== null) this.maxPrice.set(maxParsed);
+
+    if (params['available'] !== undefined) {
+      const available = params['available'];
+      if (available === 'true' || available === true) {
+        this.showOnlyAvailable.set(true);
+      } else if (available === 'false' || available === false) {
+        this.showOnlyAvailable.set(false);
+      } else {
+        this.toastr.error('available debe ser true o false', 'Parámetro inválido');
+        return false;
+      }
+    }
+
+    if (params['sort']) {
+      const allowed = ['precio-asc', 'precio-desc', 'nombre'];
+      if (!allowed.includes(params['sort'])) {
+        this.toastr.error('sort no es válido', 'Parámetro inválido');
+        return false;
+      }
+      this.sortBy.set(params['sort']);
+    }
+
+    return true;
   }
 
   private loadInitialData() {

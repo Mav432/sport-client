@@ -1,14 +1,12 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 @Component({
-  selector: 'app-footer',
+  selector: 'app-help',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  templateUrl: './footer.html',
-  styleUrl: './footer.css',
+  templateUrl: './help.html',
+  styleUrl: './help.css',
 })
-export class Footer {
-
-}
+export class HelpPage {}
